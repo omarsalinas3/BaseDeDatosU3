@@ -1,0 +1,179 @@
+<div class="container">
+  <div class="row">
+    <!-- Formulario -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">{{ modoEdicion ? 'Editar Producto' : 'Nuevo Producto' }}</h3>
+
+          <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()">
+            <div class="mb-3">
+              <label class="form-label">Código de Barras</label>
+              <input type="text" class="form-control" formControlName="codigoBarras">
+              <div *ngIf="productoForm.get('codigoBarras')?.invalid && productoForm.get('codigoBarras')?.touched" class="text-danger">
+                Código de barras es requerido.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <input type="text" class="form-control" formControlName="nombre">
+              <div *ngIf="productoForm.get('nombre')?.invalid && productoForm.get('nombre')?.touched" class="text-danger">
+                Nombre es requerido.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Tamaño</label>
+              <select class="form-select" formControlName="tamano">
+                <option value="">Seleccione un tamaño</option>
+                <option value="Pequeño">Pequeño</option>
+                <option value="Mediano">Mediano</option>
+                <option value="Grande">Grande</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Marca</label>
+              <input type="text" class="form-control" formControlName="marca">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Precio por Pieza</label>
+              <input type="number" class="form-control" formControlName="precioPieza">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Precio por Caja</label>
+              <input type="number" class="form-control" formControlName="precioCaja">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Piezas por Caja</label>
+              <input type="number" class="form-control" formControlName="piezasPorCaja">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Stock en Almacén</label>
+              <input type="number" class="form-control" formControlName="stockAlmacen">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Stock en Exhibición</label>
+              <input type="number" class="form-control" formControlName="stockExhibe">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Existencia en Almacén</label>
+              <input type="number" class="form-control" formControlName="existenciaAlmacen">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Existencia en Exhibición</label>
+              <input type="number" class="form-control" formControlName="existenciaExhibe">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Proveedores</label>
+              <select class="form-select" formControlName="proveedores" multiple>
+                <option *ngFor="let proveedor of proveedores" [value]="proveedor._id">
+                  {{ proveedor.nombre }}
+                </option>
+              </select>
+              <div *ngIf="proveedores.length === 0" class="text-danger mt-1">
+                No hay proveedores disponibles.
+              </div>
+            </div>
+
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" formControlName="activo" id="activo">
+              <label class="form-check-label" for="activo">Activo</label>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary" [disabled]="!productoForm.valid">
+                {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
+              </button>
+              <button type="button" class="btn btn-secondary" (click)="limpiarFormulario()">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de Productos -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">Lista de Productos</h3>
+
+          <div *ngIf="loading" class="text-center">
+            <p>Cargando productos...</p>
+          </div>
+
+          <div *ngIf="error" class="alert alert-danger">
+            {{ errorMessage }}
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-striped" *ngIf="!loading && productos.length > 0">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Nombre</th>
+                  <th>Marca</th>
+                  <th>Tamaño</th>
+                  <th>Precio Pieza</th>
+                  <th>Precio Caja</th>
+                  <th>Piezas por Caja</th>
+                  <th>Stock Almacén</th>
+                  <th>Stock Exhibición</th>
+                  <th>Existencia Almacén</th>
+                  <th>Existencia Exhibición</th>
+                  <th>Proveedores</th>
+                  <th>Activo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let producto of productos">
+                  <td>{{ producto.codigoBarras }}</td>
+                  <td>{{ producto.nombre }}</td>
+                  <td>{{ producto.marca }}</td>
+                  <td>{{ producto.tamano }}</td>
+                  <td>{{ producto.precioPieza | currency }}</td>
+                  <td>{{ producto.precioCaja | currency }}</td>
+                  <td>{{ producto.piezasPorCaja }}</td>
+                  <td>{{ producto.stockAlmacen }}</td>
+                  <td>{{ producto.stockExhibe }}</td>
+                  <td>{{ producto.existenciaAlmacen }}</td>
+                  <td>{{ producto.existenciaExhibe }}</td>
+                  <td>
+                    <span *ngFor="let proveedor of producto.proveedores">
+                      {{ proveedor.nombre ? proveedor.nombre : 'ID: ' + proveedor }}<br>
+                    </span>
+                  </td>
+                  <td>{{ producto.activo ? 'Sí' : 'No' }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-info me-2" (click)="editarProducto(producto)">
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-danger" (click)="eliminarProducto(producto._id!)">
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div *ngIf="!loading && productos.length === 0" class="text-center">
+            <p>No hay productos disponibles.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

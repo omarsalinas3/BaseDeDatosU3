@@ -1,0 +1,43 @@
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+  
+  .card-header {
+    font-weight: 500;
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+  }
+  
+  .table th {
+    font-weight: 600;
+  }
+  
+  .badge {
+    font-size: 85%;
+    padding: 0.35em 0.65em;
+  }
+  
+  .alert {
+    margin-bottom: 20px;
+  }
+  
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .text-success {
+    color: #198754 !important;
+  }
+  
+  .text-danger {
+    color: #dc3545 !important;
+  }
+  
+  .spinner-border {
+    width: 2rem;
+    height: 2rem;
+  }
