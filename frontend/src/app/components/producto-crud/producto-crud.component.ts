@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router'; // Importar Router
 import { Producto } from '../../models/producto.model';
 import { ProductoService } from '../../services/producto.service';
+import { AuthService } from '../../services/auth.service';
 
 interface Proveedor {
   _id: string;
@@ -215,10 +216,15 @@ export class ProductoCrudComponent implements OnInit {
   productoIdEdicion: string | null = null;
 
   constructor(
+    private authService: AuthService,
     private productoService: ProductoService,
     private fb: FormBuilder,
     private router: Router // Agregar Router
-  ) {}
+  ) {
+    if(!this.authService.hasRole(['AlmaceninstaInventario'])){
+      this.router.navigate(['/acceso-denegado']);
+    }
+  }
 
   ngOnInit(): void {
     this.inicializarFormulario();

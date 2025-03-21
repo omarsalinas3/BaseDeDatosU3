@@ -71,6 +71,10 @@ export class ProductoService {
       );
   }
 
+  getProductosParaClientes(): Observable<Producto[]>{
+    return this.http.get<Producto[]>(`${this.apiUrl}/productos/cliente`);
+  }
+
   getHistorialPrecios(id: string): Observable<HistorialPrecio[]> {
     console.log(`Solicitando historial de precios para producto ID: ${id}`);
     return this.http.get<any>(`${this.apiUrl}/${id}/historial-precios`, { headers: this.getHeaders() })

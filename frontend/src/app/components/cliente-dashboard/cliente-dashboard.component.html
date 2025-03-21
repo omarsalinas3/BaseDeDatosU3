@@ -1,0 +1,48 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Tienda de Moda Online</h2>
+  
+  <!-- Filtros y búsqueda -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <input type="text" class="form-control" placeholder="Buscar prendas...">
+    </div>
+    <div class="col-md-3">
+      <select class="form-select">
+        <option>Todas las categorías</option>
+        <option>Camisetas</option>
+        <option>Pantalones</option>
+        <option>Vestidos</option>
+        <option>Abrigos</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select class="form-select">
+        <option>Ordenar por</option>
+        <option>Precio: menor a mayor</option>
+        <option>Precio: mayor a menor</option>
+        <option>Más nuevos primero</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Grid de productos -->
+  <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+    <div class="col" *ngFor="let producto of productosDisponibles">
+      <div class="card h-100 product-card">
+        <img [src]="producto.imagenUrl" class="card-img-top" alt="{{producto.nombre}}" style="height: 300px; object-fit: cover;">
+        <div class="card-body">
+          <h5 class="card-title">{{producto.nombre}}</h5>
+          <p class="card-text text-muted">{{producto.descripcion}}</p>
+        </div>
+        <div class="card-footer bg-white">
+          <small class="text-muted">Tallas: S, M, L, XL</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje si no hay productos -->
+  <div *ngIf="productosDisponibles.length === 0" class="alert alert-info mt-4">
+    No hay productos disponibles en este momento.
+  </div>
+</div>
