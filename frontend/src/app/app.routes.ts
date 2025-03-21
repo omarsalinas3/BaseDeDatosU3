@@ -10,7 +10,7 @@ export const routes: Routes = [
   { path: 'inventario', loadComponent: () => import('./components/producto-crud/producto-crud.component').then(m => m.ProductoCrudComponent), canActivate: [authGuard], data: {roles: ['AlmacenistaInventario']} },
   { path: 'exhibidor', loadComponent: () => import('./components/exhibidor-dashboard/exhibidor-dashboard.component').then(m => m.ExhibidorDashboardComponent), canActivate: [authGuard], data: {roles: ['AlmacenistaExhibidor']} },
   { path: 'cliente', loadComponent: () => import('./components/cliente-dashboard/cliente-dashboard.component').then(m => m.ClienteDashboardComponent), canActivate: [authGuard], data: {roles: ['Cliente']} },
-  { path: 'acceso-denegado', loadComponent:() => import('./components/acceso-denegado/acceso-denegado.component').then(m => m.AccesoDenegadoComponent)},
+ //{ path: 'acceso-denegado', loadComponent:() => import('./components/acceso-denegado/acceso-denegado.component').then(m => m.AccesoDenegadoComponent)},
   { path: 'productos', component: ProductoCrudComponent },
   { path: 'productos/:id/historial-precios', component: HistorialPreciosComponent },
   { path: 'login', component: LoginComponent },

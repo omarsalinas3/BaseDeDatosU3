@@ -14,7 +14,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   }
   
   // Verificamos los roles si están definidos en la ruta
-  const rolesRequeridos = route.data['roles'] as string[];
+  /*const rolesRequeridos = route.data['roles'] as string[];
   if(rolesRequeridos && rolesRequeridos.length > 0) {
     const userRole = authService.currentUserValor?.rol;
     
@@ -27,7 +27,7 @@ export const authGuard: CanActivateFn = (route, state) => {
       router.navigate(['/acceso-denegado']);
       return false;
     }
-  }
+  }*/
   
   return true;
 };
