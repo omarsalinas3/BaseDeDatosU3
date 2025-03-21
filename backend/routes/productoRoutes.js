@@ -14,5 +14,6 @@ router.get('/cliente', authMiddleware, (req, res) => {
     .then(productos => res.json({success: true, data: productos}))
     .catch(error => res.status(500).json({success: false, message: error.message}));
 })
+router.get("/:id/historial-precios", productoController.getHistorialPrecios);
 
 module.exports = router;

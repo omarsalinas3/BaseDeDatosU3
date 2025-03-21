@@ -11,9 +11,9 @@ interface HistorialPrecio {
   fechaInicio: Date;
   fechaFin: Date;
   precioAnterior: number;
-  precioPieza: number;
-  precioCaja: number;
-  variacion?: number;
+  // Campos derivados
+  precioPieza?: number;
+  precioCaja?: number;
 }
 
 @Component({
@@ -84,7 +84,7 @@ export class HistorialPreciosComponent implements OnInit {
     this.productoService.getProductoById(this.productoId).subscribe({
       next: (data) => {
         this.producto = data;
-        this.cargarHistorial();
+        this.cargarHistorial(); // Cargar historial siempre desde el endpoint dedicado
       },
       error: (err) => {
         console.error('Error al cargar producto:', err);
@@ -103,9 +103,29 @@ export class HistorialPreciosComponent implements OnInit {
     
     this.productoService.getHistorialPrecios(this.productoId).subscribe({
       next: (data) => {
-        // Asegúrate de que data sea del tipo correcto
-        this.historialCompleto = data as HistorialPrecio[];
-        this.procesarHistorial();
+        console.log('Historial de precios recibido:', data);
+        
+        // Verificar si data está vacío
+        if (!data || data.length === 0) {
+          console.warn('No se recibieron datos del historial');
+          this.historialCompleto = [];
+          this.historialFiltrado = [];
+          this.loading = false;
+          return;
+        }
+        
+        // Convertir los datos al formato correcto
+        this.historialCompleto = data.map(registro => {
+          return {
+            fechaInicio: new Date(registro.fechaInicio),
+            fechaFin: new Date(registro.fechaFin),
+            precioAnterior: registro.precioAnterior,
+            // Añadir estos campos para mantener compatibilidad con la interfaz
+            precioPieza: registro.precioAnterior,
+            precioCaja: this.calcularPrecioCaja(registro.precioAnterior)
+          };
+        });
+        
         this.aplicarFiltros();
         this.loading = false;
       },
@@ -117,21 +137,11 @@ export class HistorialPreciosComponent implements OnInit {
       }
     });
   }
-
-  procesarHistorial(): void {
-    // Asegurarse de que el historial tenga la estructura adecuada
-    if (this.producto && this.producto.historialPrecios) {
-      this.historialCompleto = this.producto.historialPrecios.map(registro => {
-        const historialItem: HistorialPrecio = {
-          fechaInicio: new Date(registro.fechaInicio),
-          fechaFin: new Date(registro.fechaFin),
-          precioAnterior: registro.precioAnterior,
-          precioPieza: this.producto?.precioPieza || 0,
-          precioCaja: this.producto?.precioCaja || 0
-        };
-        return historialItem;
-      });
-    }
+  
+  // Método para calcular el precio de caja basado en el precio de pieza
+  calcularPrecioCaja(precioPieza: number): number {
+    if (!this.producto || !this.producto.piezasPorCaja) return 0;
+    return precioPieza * this.producto.piezasPorCaja;
   }
   
   aplicarFiltros(): void {
@@ -161,24 +171,12 @@ export class HistorialPreciosComponent implements OnInit {
       return true;
     });
     
+    console.log('Historial filtrado:', this.historialFiltrado);
+    
     // Ordenar por fecha (más reciente primero)
     this.historialFiltrado.sort((a, b) => {
       return new Date(b.fechaInicio).getTime() - new Date(a.fechaInicio).getTime();
     });
-    
-    // Calcular variación de precios
-    if (this.historialFiltrado.length > 0) {
-      for (let i = 0; i < this.historialFiltrado.length; i++) {
-        const actual = this.historialFiltrado[i];
-        const siguiente = i < this.historialFiltrado.length - 1 ? this.historialFiltrado[i + 1] : null;
-        
-        if (siguiente && siguiente.precioAnterior) {
-          actual.variacion = (actual.precioAnterior - siguiente.precioAnterior) / siguiente.precioAnterior;
-        } else {
-          actual.variacion = 0;
-        }
-      }
-    }
   }
   
   volver(): void {

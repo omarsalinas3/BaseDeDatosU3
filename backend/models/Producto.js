@@ -15,7 +15,7 @@ const ProductoSchema = new mongoose.Schema({
   proveedores: [{ type: mongoose.Schema.Types.ObjectId, ref: "Proveedor" }],
   historialPrecios: [
     {
-      precioAnterior: { type: Number, required: true }, // Solo el precio anterior
+      precioAnterior: { type: Number, required: true },
       fechaInicio: { type: Date, required: true },
       fechaFin: { type: Date, required: true },
     },
@@ -23,33 +23,53 @@ const ProductoSchema = new mongoose.Schema({
   activo: { type: Boolean, default: true },
 });
 
-// Hook para actualizar el historial de precios antes de guardar
-ProductoSchema.pre("save", function (next) {
+// Método para capturar el precio anterior antes de guardar
+ProductoSchema.pre("save", async function(next) {
+  // Verificar si el precio ha cambiado
   if (this.isModified("precioPieza") || this.isModified("precioCaja")) {
     const ahora = new Date();
-
-    // Si ya existe un historial, actualiza la fechaFin del último registro
-    if (this.historialPrecios.length > 0) {
+    
+    // Si ya existe un historial, actualizar la fechaFin del último registro
+    if (this.historialPrecios && this.historialPrecios.length > 0) {
       const ultimoRegistro = this.historialPrecios[this.historialPrecios.length - 1];
       ultimoRegistro.fechaFin = ahora;
     }
-
-    // Obtener el valor anterior antes de la modificación
+    
+    // Obtener el precio actual antes de la modificación
     let precioAnterior;
+    
     if (this.isModified("precioPieza")) {
-      precioAnterior = this._original ? this._original.precioPieza : this.precioPieza;
+      // Usar el precio de pieza original si está disponible
+      if (this.isNew) {
+        // Si es un producto nuevo, usar el valor actual
+        precioAnterior = this.precioPieza;
+      } else {
+        // Para productos existentes, recuperar el valor anterior
+        const productoDB = await mongoose.model("Producto").findById(this._id);
+        precioAnterior = productoDB ? productoDB.precioPieza : this.precioPieza;
+      }
     } else if (this.isModified("precioCaja")) {
-      precioAnterior = this._original ? this._original.precioCaja : this.precioCaja;
+      // Usar el precio de caja original si está disponible
+      if (this.isNew) {
+        // Si es un producto nuevo, usar el valor actual
+        precioAnterior = this.precioCaja / this.piezasPorCaja; // Convertir a precio por pieza
+      } else {
+        // Para productos existentes, recuperar el valor anterior
+        const productoDB = await mongoose.model("Producto").findById(this._id);
+        precioAnterior = productoDB ? productoDB.precioCaja / productoDB.piezasPorCaja : this.precioCaja / this.piezasPorCaja;
+      }
     }
-
-    // Agregar un nuevo registro al historial con el precio anterior
-    this.historialPrecios.push({
-      precioAnterior: precioAnterior, // Solo el precio anterior
-      fechaInicio: ahora,
-      fechaFin: ahora, // La fechaFin se actualizará en el próximo cambio
-    });
+    
+    // Agregar un nuevo registro al historial
+    if (precioAnterior !== undefined) {
+      this.historialPrecios.push({
+        precioAnterior: precioAnterior,
+        fechaInicio: ahora,
+        fechaFin: ahora
+      });
+    }
   }
-
+  
   next();
 });
 

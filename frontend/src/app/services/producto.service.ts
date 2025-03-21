@@ -12,10 +12,9 @@ interface ProveedorResponse {
 
 // Interface para el historial de precios
 interface HistorialPrecio {
+  precioAnterior: number;
   fechaInicio: Date;
   fechaFin: Date;
-  precioPieza: number;
-  precioCaja: number;
 }
 
 @Injectable({
@@ -135,29 +134,8 @@ export class ProductoService {
   updateProducto(id: string, producto: Producto): Observable<Producto> {
     console.log(`Actualizando producto ${id}:`, producto);
     
-    // Verificar si hay cambio en el precio para registrar historial
-    if (id) {
-      this.getProductoById(id).subscribe({
-        next: (productoActual) => {
-          if (productoActual && 
-              (productoActual.precioPieza !== producto.precioPieza || 
-               productoActual.precioCaja !== producto.precioCaja)) {
-            
-            // Registrar el precio anterior en el historial
-            const historial = producto.historialPrecios || [];
-            historial.push({
-              precioAnterior: productoActual.precioPieza,
-              fechaInicio: new Date(productoActual.historialPrecios ? 
-                productoActual.historialPrecios[productoActual.historialPrecios.length - 1]?.fechaInicio || new Date() : 
-                new Date()),
-              fechaFin: new Date()
-            });
-            producto.historialPrecios = historial;
-          }
-        },
-        error: (err) => console.error('Error al obtener producto para historial:', err)
-      });
-    }
+    // Nota: El backend se encarga de actualizar el historial de precios
+    // No intentamos manipular el historial aquí
     
     return this.http.put<any>(`${this.apiUrl}/${id}`, producto, { headers: this.getHeaders() })
       .pipe(

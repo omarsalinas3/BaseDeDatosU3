@@ -1,179 +1,677 @@
-<div class="container">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MODERA | Tienda de Ropa</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --secondary: #16a085;
+      --accent: #e74c3c;
+      --light: #ecf0f1;
+      --dark: #2c3e50;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      color: var(--dark);
+    }
+    
+    .navbar-brand {
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+    
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      transition: all 0.3s;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+      border-radius: 12px 12px 0 0 !important;
+      padding: 15px 20px;
+    }
+    
+    .btn-primary {
+      background: var(--secondary);
+      border-color: var(--secondary);
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .btn-outline-primary {
+      color: var(--secondary);
+      border-color: var(--secondary);
+    }
+    
+    .btn-outline-primary:hover {
+      background: var(--secondary);
+      border-color: var(--secondary);
+    }
+    
+    .table th {
+      background-color: var(--light);
+      color: var(--dark);
+    }
+    
+    .form-control:focus {
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 0.25rem rgba(22, 160, 133, 0.25);
+    }
+    
+    .form-select:focus {
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 0.25rem rgba(22, 160, 133, 0.25);
+    }
+    
+    .badge-trend {
+      background-color: #9b59b6;
+    }
+    
+    .badge-sale {
+      background-color: #e74c3c;
+    }
+    
+    .badge-new {
+      background-color: #3498db;
+    }
+    
+    .product-image {
+      height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    
+    .inventory-chart {
+      height: 250px;
+      width: 100%;
+    }
+    
+    .brand-logo {
+      height: 30px;
+      margin-right: 10px;
+    }
+    
+    .color-swatch {
+      display: inline-block;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      margin-right: 5px;
+      border: 2px solid #fff;
+      box-shadow: 0 0 3px rgba(0,0,0,0.2);
+    }
+    
+    .scroll-container {
+      max-height: 600px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    
+    .form-floating label {
+      color: #6c757d;
+    }
+    
+    /* Animaciones */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    
+    .nav-tabs .nav-link.active {
+      color: var(--secondary);
+      border-bottom: 3px solid var(--secondary);
+      font-weight: 600;
+    }
+    
+    .nav-tabs .nav-link {
+      color: var(--dark);
+      border: none;
+      padding: 10px 15px;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary);">
+  <div class="container">
+    <a class="navbar-brand" href="#">MODERA</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link active" href="#"><i class="fas fa-tshirt"></i> Inventario</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#"><i class="fas fa-chart-line"></i> Ventas</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#"><i class="fas fa-truck"></i> Proveedores</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#"><i class="fas fa-tag"></i> Promociones</a>
+        </li>
+      </ul>
+      <div class="d-flex">
+        <button class="btn btn-outline-light me-2"><i class="fas fa-sync-alt"></i> Sincronizar</button>
+        <button class="btn btn-light"><i class="fas fa-user"></i> Admin</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h2><i class="fas fa-tshirt"></i> Gestión de Inventario de Moda</h2>
+      <p class="text-muted">Administra tu colección, seguimiento de inventario y precios de temporada</p>
+    </div>
+    <div class="col-md-4 text-end">
+      <div class="btn-group">
+        <button class="btn btn-outline-primary"><i class="fas fa-file-export"></i> Exportar</button>
+        <button class="btn btn-outline-primary"><i class="fas fa-print"></i> Imprimir</button>
+        <button class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Prenda</button>
+      </div>
+    </div>
+  </div>
+  
+  <div *ngIf="loading" class="alert alert-info fade-in">
+    <div class="d-flex align-items-center">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      <div>
+        Cargando información de inventario...
+        <span *ngIf="loadingMessage">({{ loadingMessage }})</span>
+      </div>
+    </div>
+  </div>
+  
+  <div *ngIf="error" class="alert alert-danger fade-in">
+    <i class="fas fa-exclamation-triangle me-2"></i> {{ errorMessage }}
+    <button class="btn btn-sm btn-outline-danger ms-3" (click)="cargarDatos()">
+      <i class="fas fa-sync-alt"></i> Reintentar
+    </button>
+  </div>
+  
   <div class="row">
-    <!-- Formulario -->
-    <div class="col-md-4">
-      <div class="card">
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 fade-in">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-pie me-2"></i>
+            Resumen de Inventario
+          </h5>
+          <button class="btn btn-sm btn-light"><i class="fas fa-expand"></i></button>
+        </div>
         <div class="card-body">
-          <h3 class="card-title">{{ modoEdicion ? 'Editar Producto' : 'Nuevo Producto' }}</h3>
-
-          <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()">
-            <div class="mb-3">
-              <label class="form-label">Código de Barras</label>
-              <input type="text" class="form-control" formControlName="codigoBarras">
-              <div *ngIf="productoForm.get('codigoBarras')?.invalid && productoForm.get('codigoBarras')?.touched" class="text-danger">
-                Código de barras es requerido.
+          <div class="row g-3 text-center">
+            <div class="col-6">
+              <div class="border rounded p-3">
+                <h3 class="text-primary">{{ 124 }}</h3>
+                <small class="text-muted">Total Prendas</small>
               </div>
             </div>
-
-            <div class="mb-3">
-              <label class="form-label">Nombre</label>
-              <input type="text" class="form-control" formControlName="nombre">
-              <div *ngIf="productoForm.get('nombre')?.invalid && productoForm.get('nombre')?.touched" class="text-danger">
-                Nombre es requerido.
+            <div class="col-6">
+              <div class="border rounded p-3">
+                <h3 class="text-success">{{ 89 }}%</h3>
+                <small class="text-muted">En Existencia</small>
               </div>
             </div>
-
-            <div class="mb-3">
-              <label class="form-label">Tamaño</label>
-              <select class="form-select" formControlName="tamano">
-                <option value="">Seleccione un tamaño</option>
-                <option value="Pequeño">Pequeño</option>
-                <option value="Mediano">Mediano</option>
-                <option value="Grande">Grande</option>
-              </select>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Marca</label>
-              <input type="text" class="form-control" formControlName="marca">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Precio por Pieza</label>
-              <input type="number" class="form-control" formControlName="precioPieza">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Precio por Caja</label>
-              <input type="number" class="form-control" formControlName="precioCaja">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Piezas por Caja</label>
-              <input type="number" class="form-control" formControlName="piezasPorCaja">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Stock en Almacén</label>
-              <input type="number" class="form-control" formControlName="stockAlmacen">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Stock en Exhibición</label>
-              <input type="number" class="form-control" formControlName="stockExhibe">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Existencia en Almacén</label>
-              <input type="number" class="form-control" formControlName="existenciaAlmacen">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Existencia en Exhibición</label>
-              <input type="number" class="form-control" formControlName="existenciaExhibe">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Proveedores</label>
-              <select class="form-select" formControlName="proveedores" multiple>
-                <option *ngFor="let proveedor of proveedores" [value]="proveedor._id">
-                  {{ proveedor.nombre }}
-                </option>
-              </select>
-              <div *ngIf="proveedores.length === 0" class="text-danger mt-1">
-                No hay proveedores disponibles.
+            <div class="col-6">
+              <div class="border rounded p-3">
+                <h3 class="text-warning">{{ 12 }}</h3>
+                <small class="text-muted">Agotándose</small>
               </div>
             </div>
-
-            <div class="mb-3 form-check">
-              <input type="checkbox" class="form-check-input" formControlName="activo" id="activo">
-              <label class="form-check-label" for="activo">Activo</label>
+            <div class="col-6">
+              <div class="border rounded p-3">
+                <h3 class="text-danger">{{ 5 }}</h3>
+                <small class="text-muted">Sin Stock</small>
+              </div>
             </div>
-
-            <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-primary" [disabled]="!productoForm.valid">
-                {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
-              </button>
-              <button type="button" class="btn btn-secondary" (click)="limpiarFormulario()">
-                Cancelar
-              </button>
+          </div>
+          
+          <hr>
+          
+          <h6 class="mt-3">Prendas por Categoría</h6>
+          <div class="progress mb-3" style="height: 25px;">
+            <div class="progress-bar" role="progressbar" style="width: 35%; background-color: #3498db;">
+              Camisetas (35%)
             </div>
-          </form>
+            <div class="progress-bar" role="progressbar" style="width: 25%; background-color: #2ecc71;">
+              Pantalones (25%)
+            </div>
+            <div class="progress-bar" role="progressbar" style="width: 20%; background-color: #e74c3c;">
+              Vestidos (20%)
+            </div>
+            <div class="progress-bar" role="progressbar" style="width: 20%; background-color: #f39c12;">
+              Accesorios (20%)
+            </div>
+          </div>
+          
+          <h6 class="mt-3">Marcas Más Populares</h6>
+          <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><img src="/api/placeholder/100/30" alt="Zara" class="brand-logo"> Zara</span>
+              <span class="badge bg-primary rounded-pill">34</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><img src="/api/placeholder/100/30" alt="H&M" class="brand-logo"> H&M</span>
+              <span class="badge bg-primary rounded-pill">28</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><img src="/api/placeholder/100/30" alt="Adidas" class="brand-logo"> Adidas</span>
+              <span class="badge bg-primary rounded-pill">22</span>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
-
-    <!-- Lista de Productos -->
-    <div class="col-md-8">
-      <div class="card">
+    
+    <div class="col-md-8 mb-4">
+      <div class="card fade-in">
+        <div class="card-header">
+          <ul class="nav nav-tabs card-header-tabs" id="productFormTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <a class="nav-link active" id="add-tab" data-bs-toggle="tab" href="#add" role="tab">
+                <i class="fas fa-plus-circle me-1"></i> {{ modoEdicion ? 'Editar Prenda' : 'Añadir Nueva Prenda' }}
+              </a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-link" id="bulk-tab" data-bs-toggle="tab" href="#bulk" role="tab">
+                <i class="fas fa-upload me-1"></i> Carga Masiva
+              </a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-link" id="settings-tab" data-bs-toggle="tab" href="#settings" role="tab">
+                <i class="fas fa-cog me-1"></i> Configuración
+              </a>
+            </li>
+          </ul>
+        </div>
+        
         <div class="card-body">
-          <h3 class="card-title">Lista de Productos</h3>
+          <div class="tab-content" id="productFormTabContent">
+            <div class="tab-pane fade show active" id="add" role="tabpanel">
+              <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="form-floating mb-3">
+                      <input type="text" class="form-control" id="codigoBarras" formControlName="codigoBarras" placeholder="SKU-12345">
+                      <label for="codigoBarras"><i class="fas fa-barcode me-1"></i> SKU / Código</label>
+                      <div *ngIf="productoForm.get('codigoBarras')?.invalid && productoForm.get('codigoBarras')?.touched" class="text-danger mt-1">
+                        <small *ngIf="productoForm.get('codigoBarras')?.errors?.['required']">El código es obligatorio</small>
+                        <small *ngIf="productoForm.get('codigoBarras')?.errors?.['maxlength']">Máximo 10 caracteres</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-floating mb-3">
+                      <input type="text" class="form-control" id="nombre" formControlName="nombre" placeholder="Nombre de la prenda">
+                      <label for="nombre"><i class="fas fa-tshirt me-1"></i> Nombre de la Prenda</label>
+                      <div *ngIf="productoForm.get('nombre')?.invalid && productoForm.get('nombre')?.touched" class="text-danger mt-1">
+                        <small>El nombre es obligatorio</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <div class="form-floating mb-3">
+                      <select class="form-select" id="marca" formControlName="marca">
+                        <option *ngFor="let marca of marcas" [value]="marca">{{ marca }}</option>
+                      </select>
+                      <label for="marca"><i class="fas fa-tag me-1"></i> Marca</label>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-floating mb-3">
+                      <select class="form-select" id="tamano" formControlName="tamano">
+                        <option value="XS">XS</option>
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                        <option value="XXL">XXL</option>
+                      </select>
+                      <label for="tamano"><i class="fas fa-ruler me-1"></i> Talla</label>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-floating mb-3">
+                      <select class="form-select" id="categoria" formControlName="categoria">
+                        <option value="Camisetas">Camisetas</option>
+                        <option value="Pantalones">Pantalones</option>
+                        <option value="Vestidos">Vestidos</option>
+                        <option value="Abrigos">Abrigos</option>
+                        <option value="Calzado">Calzado</option>
+                        <option value="Accesorios">Accesorios</option>
+                      </select>
+                      <label for="categoria"><i class="fas fa-layer-group me-1"></i> Categoría</label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <div class="form-floating mb-3">
+                      <select class="form-select" id="color" formControlName="color">
+                        <option value="Negro">Negro</option>
+                        <option value="Blanco">Blanco</option>
+                        <option value="Azul">Azul</option>
+                        <option value="Rojo">Rojo</option>
+                        <option value="Verde">Verde</option>
+                        <option value="Amarillo">Amarillo</option>
+                        <option value="Morado">Morado</option>
+                      </select>
+                      <label for="color"><i class="fas fa-palette me-1"></i> Color</label>
+                    </div>
+                    <div class="d-flex justify-content-around mt-1 mb-3">
+                      <span class="color-swatch" style="background-color: #000;"></span>
+                      <span class="color-swatch" style="background-color: #fff;"></span>
+                      <span class="color-swatch" style="background-color: #3498db;"></span>
+                      <span class="color-swatch" style="background-color: #e74c3c;"></span>
+                      <span class="color-swatch" style="background-color: #2ecc71;"></span>
+                      <span class="color-swatch" style="background-color: #f1c40f;"></span>
+                      <span class="color-swatch" style="background-color: #9b59b6;"></span>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-floating mb-3">
+                      <select class="form-select" id="temporada" formControlName="temporada">
+                        <option value="Primavera-Verano">Primavera-Verano</option>
+                        <option value="Otoño-Invierno">Otoño-Invierno</option>
+                        <option value="Todo el año">Todo el año</option>
+                      </select>
+                      <label for="temporada"><i class="fas fa-calendar-alt me-1"></i> Temporada</label>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-floating mb-3">
+                      <select class="form-select" id="proveedores" formControlName="proveedores" multiple>
+                        <option *ngFor="let proveedor of proveedores" [value]="proveedor._id">
+                          {{ proveedor.nombre }}
+                        </option>
+                      </select>
+                      <label for="proveedores"><i class="fas fa-truck me-1"></i> Proveedores</label>
+                      <div *ngIf="proveedores.length === 0" class="text-warning mt-1">
+                        <small>{{ loadingProveedores ? 'Cargando proveedores...' : 'No hay proveedores disponibles' }}</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="row g-3">
+                  <div class="col-md-3">
+                    <div class="form-floating mb-3">
+                      <input type="number" class="form-control" id="precioPieza" formControlName="precioPieza">
+                      <label for="precioPieza"><i class="fas fa-tag me-1"></i> Precio Normal</label>
+                      <div *ngIf="productoForm.get('precioPieza')?.invalid && productoForm.get('precioPieza')?.touched" class="text-danger mt-1">
+                        <small *ngIf="productoForm.get('precioPieza')?.errors?.['max']">Precio máximo 1,000,000</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-floating mb-3">
+                      <input type="number" class="form-control" id="precioCaja" formControlName="precioCaja">
+                      <label for="precioCaja"><i class="fas fa-percentage me-1"></i> Precio Oferta</label>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-floating mb-3">
+                      <input type="number" class="form-control" id="piezasPorCaja" formControlName="piezasPorCaja">
+                      <label for="piezasPorCaja"><i class="fas fa-boxes me-1"></i> Unid. por Paquete</label>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-check form-switch mt-3">
+                      <input class="form-check-input" type="checkbox" id="destacado" formControlName="destacado">
+                      <label class="form-check-label" for="destacado">Producto Destacado</label>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="activo" formControlName="activo">
+                      <label class="form-check-label" for="activo">Producto Activo</label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="row g-3 mt-1">
+                  <div class="col-md-3">
+                    <div class="form-floating mb-3">
+                      <input type="number" class="form-control" id="stockAlmacen" formControlName="stockAlmacen">
+                      <label for="stockAlmacen"><i class="fas fa-warehouse me-1"></i> Stock Almacén</label>
+                      <div *ngIf="productoForm.get('stockAlmacen')?.invalid && productoForm.get('stockAlmacen')?.touched" class="text-danger mt-1">
+                        <small *ngIf="productoForm.get('stockAlmacen')?.errors?.['min']">No puede ser menor al stock en tienda</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-floating mb-3">
+                      <input type="number" class="form-control" id="stockExhibe" formControlName="stockExhibe">
+                      <label for="stockExhibe"><i class="fas fa-store me-1"></i> Stock Tienda</label>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-floating mb-3">
+                      <input type="number" class="form-control" id="existenciaAlmacen" formControlName="existenciaAlmacen">
+                      <label for="existenciaAlmacen"><i class="fas fa-boxes me-1"></i> Exist. Almacén</label>
+                      <div *ngIf="productoForm.get('existenciaAlmacen')?.invalid && productoForm.get('existenciaAlmacen')?.touched" class="text-danger mt-1">
+                        <small *ngIf="productoForm.get('existenciaAlmacen')?.errors?.['min']">No puede ser menor a la existencia en tienda</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-floating mb-3">
+                      <input type="number" class="form-control" id="existenciaExhibe" formControlName="existenciaExhibe">
+                      <label for="existenciaExhibe"><i class="fas fa-shopping-bag me-1"></i> Exist. Tienda</label>
+                    </div>
+                  </div>
+                </div>
 
-          <div *ngIf="loading" class="text-center">
-            <p>Cargando productos...</p>
-          </div>
-
-          <div *ngIf="error" class="alert alert-danger">
-            {{ errorMessage }}
-          </div>
-
-          <div class="table-responsive">
-            <table class="table table-striped" *ngIf="!loading && productos.length > 0">
-              <thead>
-                <tr>
-                  <th>Código</th>
-                  <th>Nombre</th>
-                  <th>Marca</th>
-                  <th>Tamaño</th>
-                  <th>Precio Pieza</th>
-                  <th>Precio Caja</th>
-                  <th>Piezas por Caja</th>
-                  <th>Stock Almacén</th>
-                  <th>Stock Exhibición</th>
-                  <th>Existencia Almacén</th>
-                  <th>Existencia Exhibición</th>
-                  <th>Proveedores</th>
-                  <th>Activo</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let producto of productos">
-                  <td>{{ producto.codigoBarras }}</td>
-                  <td>{{ producto.nombre }}</td>
-                  <td>{{ producto.marca }}</td>
-                  <td>{{ producto.tamano }}</td>
-                  <td>{{ producto.precioPieza | currency }}</td>
-                  <td>{{ producto.precioCaja | currency }}</td>
-                  <td>{{ producto.piezasPorCaja }}</td>
-                  <td>{{ producto.stockAlmacen }}</td>
-                  <td>{{ producto.stockExhibe }}</td>
-                  <td>{{ producto.existenciaAlmacen }}</td>
-                  <td>{{ producto.existenciaExhibe }}</td>
-                  <td>
-                    <span *ngFor="let proveedor of producto.proveedores">
-                      {{ proveedor.nombre ? proveedor.nombre : 'ID: ' + proveedor }}<br>
-                    </span>
-                  </td>
-                  <td>{{ producto.activo ? 'Sí' : 'No' }}</td>
-                  <td>
-                    <button class="btn btn-sm btn-info me-2" (click)="editarProducto(producto)">
-                      Editar
-                    </button>
-                    <button class="btn btn-sm btn-danger" (click)="eliminarProducto(producto._id!)">
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div *ngIf="!loading && productos.length === 0" class="text-center">
-            <p>No hay productos disponibles.</p>
+                <div class="row mb-3">
+                  <div class="col-md-12">
+                    <label for="imagenProducto" class="form-label"><i class="fas fa-image me-1"></i> Imagen del Producto</label>
+                    <div class="input-group">
+                      <input type="file" class="form-control" id="imagenProducto">
+                      <button class="btn btn-outline-secondary" type="button">Subir</button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                  <button type="button" class="btn btn-outline-secondary" (click)="limpiarFormulario()">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                  </button>
+                  <button type="submit" class="btn btn-primary" [disabled]="productoForm.invalid">
+                    <i class="fas" [ngClass]="modoEdicion ? 'fa-save' : 'fa-plus-circle'"></i>
+                    {{ modoEdicion ? ' Actualizar Prenda' : ' Añadir Prenda' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+            
+            <div class="tab-pane fade" id="bulk" role="tabpanel">
+              <div class="p-4 text-center">
+                <img src="/api/placeholder/200/150" alt="Upload Icon" class="mb-3">
+                <h4>Carga Masiva de Inventario</h4>
+                <p>Arrastra tu archivo CSV o Excel con los datos de inventario</p>
+                <div class="mb-3">
+                  <input type="file" class="form-control" id="bulkFile">
+                </div>
+                <button class="btn btn-primary"><i class="fas fa-cloud-upload-alt me-1"></i> Iniciar Carga</button>
+                <hr>
+                <a href="#" class="btn btn-link"><i class="fas fa-download me-1"></i> Descargar Plantilla</a>
+              </div>
+            </div>
+            
+            <div class="tab-pane fade" id="settings" role="tabpanel">
+              <div class="p-3">
+                <h5 class="mb-3">Configuración de Inventario</h5>
+                <div class="mb-3 form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="notificacionesStock">
+                  <label class="form-check-label" for="notificacionesStock">Activar notificaciones de stock bajo</label>
+                </div>
+                <div class="mb-3">
+                  <label for="nivelStockBajo" class="form-label">Nivel para alertas de stock bajo</label>
+                  <input type="number" class="form-control" id="nivelStockBajo" value="5">
+                </div>
+                <button class="btn btn-primary">Guardar Configuración</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  
+  <div class="card mb-4 fade-in">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="fas fa-list me-2"></i> Catálogo de Productos</h5>
+      <div class="input-group" style="max-width: 300px;">
+        <input type="text" class="form-control" placeholder="Buscar...">
+        <button class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive scroll-container">
+        <table *ngIf="productos.length > 0" class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Imagen</th>
+              <th>SKU</th>
+              <th>Nombre</th>
+              <th>Marca</th>
+              <th>Categoría</th>
+              <th>Talla</th>
+              <th>Color</th>
+              <th>Precio</th>
+              <th>Stock</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let producto of productos" class="align-middle">
+              <td>
+                <img src="/api/placeholder/60/60" class="rounded" alt="Producto">
+              </td>
+              <td>{{ producto.codigoBarras }}</td>
+              <td>{{ producto.nombre }}</td>
+              <td>{{ producto.marca }}</td>
+              <td>{{ producto.categoria || 'Camisetas' }}</td>
+              <td>{{ producto.tamano }}</td>
+              <td>
+                <span class="color-swatch" [style.background-color]="producto.color || '#3498db'"></span>
+                {{ producto.color || 'Azul' }}
+              </td>
+              <td>
+                <div>{{ producto.precioPieza | currency }}</div>
+                <small *ngIf="producto.precioCaja && producto.precioCaja < producto.precioPieza" class="text-decoration-line-through text-muted">
+                  {{ producto.precioCaja | currency }}
+                </small>
+              </td>
+              <td>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress<div class="progress-bar bg-success" role="progressbar" 
+                  [style.width]="calcularPorcentajeStock(producto)"
+                  aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+           </div>
+           <small>{{ producto.existenciaAlmacen + producto.existenciaExhibe }} unid.</small>
+         </td>
+         <td>
+           <span class="badge rounded-pill" 
+                 [ngClass]="{'bg-success': producto.activo, 'bg-danger': !producto.activo}">
+             {{ producto.activo ? 'Activo' : 'Inactivo' }}
+           </span>
+           <span *ngIf="producto.destacado" class="badge rounded-pill badge-trend ms-1">Destacado</span>
+         </td>
+         <td>
+           <div class="btn-group btn-group-sm" role="group">
+             <button class="btn btn-outline-primary" (click)="editarProducto(producto)">
+               <i class="fas fa-edit"></i>
+             </button>
+             <button class="btn btn-outline-danger" (click)="eliminarProducto(producto._id)">
+               <i class="fas fa-trash"></i>
+             </button>
+             <button class="btn btn-outline-info" (click)="verDetalles(produc
+               <i class="fas fa-eye"></i>
+             </button>
+           </div>
+         </td>
+       </tr>
+     </tbody>
+   </table>
+   
+   <div *ngIf="productos.length === 0" class="text-center p-5">
+     <img src="/api/placeholder/150/150" alt="No products" class="mb-3">
+     <h5>No hay productos en el inventario</h5>
+     <p class="text-muted">Comienza añadiendo tus primeros productos</p>
+     <button class="btn btn-primary" data-bs-toggle="tab" data-bs-target="#add">
+       <i class="fas fa-plus-circle me-1"></i> Añadir Producto
+     </button>
+   </div>
+ </div>
 </div>
+<div class="card-footer">
+ <div class="d-flex justify-content-between align-items-center">
+   <div>
+     Mostrando <span class="fw-bold">{{ productos.length }}</span> de <span class="fw-bold">{{ totalProductos }}</span> productos
+   </div>
+   <nav aria-label="Paginación de productos">
+     <ul class="pagination pagination-sm mb-0">
+       <li class="page-item disabled">
+         <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
+       </li>
+       <li class="page-item active"><a class="page-link" href="#">1</a></li>
+       <li class="page-item"><a class="page-link" href="#">2</a></li>
+       <li class="page-item"><a class="page-link" href="#">3</a></li>
+       <li class="page-item">
+         <a class="page-link" href="#">Siguiente</a>
+       </li>
+     </ul>
+   </nav>
+ </div>
+</div>
+</div>
+</div>
+
+<footer class="bg-dark text-white py-4 mt-5">
+<div class="container">
+<div class="row">
+ <div class="col-md-6">
+   <h5>MODERA - Sistema de Gestión de Inventario</h5>
+   <p>La solución completa para tiendas de moda</p>
+ </div>
+ <div class="col-md-6 text-md-end">
+   <p>© 2025 MODERA. Todos los derechos reservados.</p>
+ </div>
+</div>
+</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
