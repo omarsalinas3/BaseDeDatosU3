@@ -20,6 +20,15 @@ const create = async (req, res) => {
       req.body.proveedores = req.body.proveedores.map((id) => new mongoose.Types.ObjectId(id));
     }
 
+    // Procesar imágenes si vienen en el cuerpo
+    if (req.body.imagenes && Array.isArray(req.body.imagenes)) {
+      req.body.imagenes = req.body.imagenes.map((img, index) => ({
+        url: img.url,
+        orden: img.orden || index,
+        principal: img.principal || false
+      }));
+    }
+
     const nuevoProducto = await productoService.createProducto(req.body);
     res.status(201).json({ data: nuevoProducto });
   } catch (error) {
@@ -48,6 +57,15 @@ const update = async (req, res) => {
     // Convierte las cadenas en el array "proveedores" a ObjectId
     if (req.body.proveedores && Array.isArray(req.body.proveedores)) {
       req.body.proveedores = req.body.proveedores.map((id) => new mongoose.Types.ObjectId(id));
+    }
+
+    // Procesar imágenes si vienen en el cuerpo
+    if (req.body.imagenes && Array.isArray(req.body.imagenes)) {
+      req.body.imagenes = req.body.imagenes.map((img, index) => ({
+        url: img.url,
+        orden: img.orden || index,
+        principal: img.principal || false
+      }));
     }
 
     const producto = await productoService.updateProducto(req.params.id, req.body);
@@ -86,6 +104,40 @@ const getHistorialPrecios = async (req, res) => {
   }
 };
 
+// Agregar imagen a un producto
+const agregarImagen = async (req, res) => {
+  try {
+    const { url, principal = false } = req.body;
+    if (!url) {
+      return res.status(400).json({ error: "La URL de la imagen es requerida" });
+    }
+
+    const producto = await productoService.agregarImagen(req.params.id, { url, principal });
+    if (!producto) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+    res.status(200).json({ data: producto });
+  } catch (error) {
+    console.error("Error en agregarImagen:", error);
+    res.status(500).json({ error: "Error al agregar la imagen", details: error.message });
+  }
+};
+
+// Eliminar imagen de un producto
+const eliminarImagen = async (req, res) => {
+  try {
+    const { imagenId } = req.params;
+    const producto = await productoService.eliminarImagen(req.params.id, imagenId);
+    if (!producto) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+    res.status(200).json({ data: producto });
+  } catch (error) {
+    console.error("Error en eliminarImagen:", error);
+    res.status(500).json({ error: "Error al eliminar la imagen", details: error.message });
+  }
+};
+
 module.exports = {
   getAll,
   create,
@@ -93,4 +145,6 @@ module.exports = {
   update,
   deleteById,
   getHistorialPrecios,
+  agregarImagen,
+  eliminarImagen
 };

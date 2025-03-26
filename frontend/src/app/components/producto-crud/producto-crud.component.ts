@@ -6,515 +6,43 @@ import { Router } from '@angular/router';
 import { Producto } from '../../models/producto.model';
 import { ProductoService } from '../../services/producto.service';
 import { AuthService } from '../../services/auth.service';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faSignOutAlt, faSpinner, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 
 interface Proveedor {
   _id: string;
   nombre: string;
 }
 
+interface ImagenProducto {
+  url: string;
+  orden?: number;
+  principal?: boolean;
+  _id?: string;
+}
+
 @Component({
   selector: 'app-producto-crud',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  template:  `
-    <div class="boutique-container">
-      <div class="header-section">
-        <h2 class="main-title">Gestión de Inventario</h2>
-      </div>
-      
-      <div *ngIf="loading" class="status-message info">
-        <i class="fas fa-spinner fa-spin"></i> Cargando datos... 
-        <span *ngIf="loadingMessage">({{ loadingMessage }})</span>
-      </div>
-      
-      <div *ngIf="error" class="status-message error">
-        {{ errorMessage }}
-        <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
-      </div>
-      
-      <!-- Formulario para registrar/editar producto -->
-      <div class="product-form-card">
-        <div class="form-header">
-          {{ modoEdicion ? 'Editar Prenda' : 'Registrar Nueva Prenda' }}
-        </div>
-        <div class="form-body">
-          <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Código de Barras</label>
-                <input type="text" class="boutique-input" formControlName="codigoBarras">
-                <div *ngIf="productoForm.get('codigoBarras')?.invalid && productoForm.get('codigoBarras')?.touched" class="error-message">
-                  <div *ngIf="productoForm.get('codigoBarras')?.errors?.['required']">Código de barras es requerido</div>
-                  <div *ngIf="productoForm.get('codigoBarras')?.errors?.['maxlength']">Código de barras no puede tener más de 10 caracteres</div>
-                </div>
-              </div>
-              <div class="form-group">
-                <label>Nombre de la Prenda</label>
-                <input type="text" class="boutique-input" formControlName="nombre">
-                <div *ngIf="productoForm.get('nombre')?.invalid && productoForm.get('nombre')?.touched" class="error-message">
-                  Nombre es requerido
-                </div>
-              </div>
-            </div>
-            
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Marca</label>
-                <select class="boutique-select" formControlName="marca">
-                  <option *ngFor="let marca of marcas" [value]="marca">{{ marca }}</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Talla</label>
-                <select class="boutique-select" formControlName="tamano">
-                  <option value="Pequeño">Pequeño</option>
-                  <option value="Mediano">Mediano</option>
-                  <option value="Grande">Grande</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Proveedores</label>
-                <select class="boutique-select" formControlName="proveedores" multiple>
-                  <option *ngFor="let proveedor of proveedores" [value]="proveedor._id">
-                    {{ proveedor.nombre }}
-                  </option>
-                </select>
-                <div *ngIf="proveedores.length === 0" class="warning-message">
-                  {{ loadingProveedores ? 'Cargando proveedores...' : 'No hay proveedores disponibles' }}
-                </div>
-              </div>
-            </div>
-            
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Precio Unitario</label>
-                <input type="number" class="boutique-input" formControlName="precioPieza">
-                <div *ngIf="productoForm.get('precioPieza')?.invalid && productoForm.get('precioPieza')?.touched" class="error-message">
-                  <div *ngIf="productoForm.get('precioPieza')?.errors?.['max']">El precio no puede ser mayor a 1,000,000</div>
-                </div>
-              </div>
-              <div class="form-group">
-                <label>Precio por Lote</label>
-                <input type="number" class="boutique-input" formControlName="precioCaja">
-              </div>
-              <div class="form-group">
-                <label>Unidades por Lote</label>
-                <input type="number" class="boutique-input" formControlName="piezasPorCaja">
-              </div>
-              <div class="form-group">
-                <label>Estado del Producto</label>
-                <div class="switch-container">
-                  <label class="switch">
-                    <input type="checkbox" formControlName="activo">
-                    <span class="slider round"></span>
-                  </label>
-                  <span class="switch-label">{{ productoForm.get('activo')?.value ? 'Activo' : 'Inactivo' }}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Stock en Bodega</label>
-                <input type="number" class="boutique-input" formControlName="stockAlmacen">
-                <div *ngIf="productoForm.get('stockAlmacen')?.invalid && productoForm.get('stockAlmacen')?.touched" class="error-message">
-                  <div *ngIf="productoForm.get('stockAlmacen')?.errors?.['min']">El stock en bodega no puede ser menor que el stock en tienda</div>
-                </div>
-              </div>
-              <div class="form-group">
-                <label>Stock en Tienda</label>
-                <input type="number" class="boutique-input" formControlName="stockExhibe">
-              </div>
-              <div class="form-group">
-                <label>Existencia en Bodega</label>
-                <input type="number" class="boutique-input" formControlName="existenciaAlmacen">
-                <div *ngIf="productoForm.get('existenciaAlmacen')?.invalid && productoForm.get('existenciaAlmacen')?.touched" class="error-message">
-                  <div *ngIf="productoForm.get('existenciaAlmacen')?.errors?.['min']">Las existencias en bodega no pueden ser menores que las existencias en tienda</div>
-                </div>
-              </div>
-              <div class="form-group">
-                <label>Existencia en Tienda</label>
-                <input type="number" class="boutique-input" formControlName="existenciaExhibe">
-              </div>
-            </div>
-            
-            <div class="form-actions">
-              <button type="button" class="btn-secondary" (click)="limpiarFormulario()">Cancelar</button>
-              <button type="submit" class="btn-primary" [disabled]="productoForm.invalid">
-                {{ modoEdicion ? 'Actualizar' : 'Registrar' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-      
-      <!-- Lista de productos -->
-      <div *ngIf="!loading" class="inventory-section">
-        <h3 class="section-title">Catálogo de Productos ({{ productos.length }})</h3>
-        
-        <div *ngIf="productos.length === 0" class="empty-message">
-          No hay productos registrados en el catálogo.
-        </div>
-        
-        <div class="table-container">
-          <table *ngIf="productos.length > 0" class="boutique-table">
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Prenda</th>
-                <th>Marca</th>
-                <th>Talla</th>
-                <th>Precio Unit.</th>
-                <th>Precio Lote</th>
-                <th>Unid/Lote</th>
-                <th>Stock Bodega</th>
-                <th>Stock Tienda</th>
-                <th>Exist. Bodega</th>
-                <th>Exist. Tienda</th>
-                <th>Proveedores</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let producto of productos">
-                <td>{{ producto.codigoBarras }}</td>
-                <td>{{ producto.nombre }}</td>
-                <td>{{ producto.marca }}</td>
-                <td>{{ producto.tamano }}</td>
-                <td>{{ producto.precioPieza | currency }}</td>
-                <td>{{ producto.precioCaja | currency }}</td>
-                <td>{{ producto.piezasPorCaja }}</td>
-                <td>{{ producto.stockAlmacen }}</td>
-                <td>{{ producto.stockExhibe }}</td>
-                <td>{{ producto.existenciaAlmacen }}</td>
-                <td>{{ producto.existenciaExhibe }}</td>
-                <td class="proveedores-cell">
-                  <span *ngFor="let proveedor of getProveedoresArray(producto.proveedores)">
-                    {{ getProveedorNombre(proveedor) }}<br>
-                  </span>
-                </td>
-                <td>
-                  <span class="status-badge" [class.active]="producto.activo" [class.inactive]="!producto.activo">
-                    {{ producto.activo ? 'Activo' : 'Inactivo' }}
-                  </span>
-                </td>
-                <td class="actions-cell">
-                  <button class="btn-action edit" (click)="editarProducto(producto)">Editar</button>
-                  <button class="btn-action history" (click)="verHistorialPrecios(producto._id!)">Historial</button>
-                  <button class="btn-action delete" (click)="eliminarProducto(producto._id!)">Eliminar</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .boutique-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-    }
-
-    .header-section {
-      margin-bottom: 2rem;
-      border-bottom: 2px solid #f0f0f0;
-      padding-bottom: 1rem;
-    }
-
-    .main-title {
-      font-size: 2.5rem;
-      color: #333;
-      font-weight: 300;
-      margin: 0;
-    }
-
-    .status-message {
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-    }
-
-    .status-message.info {
-      background-color: #e3f2fd;
-      color: #1976d2;
-    }
-
-    .status-message.error {
-      background-color: #ffebee;
-      color: #c62828;
-    }
-
-    .product-form-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-bottom: 2rem;
-    }
-
-    .form-header {
-      padding: 1.5rem;
-      background: #333;
-      color: white;
-      font-size: 1.25rem;
-      border-radius: 12px 12px 0 0;
-    }
-
-    .form-body {
-      padding: 2rem;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      color: #666;
-      font-size: 0.9rem;
-    }
-
-    .boutique-input, .boutique-select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 1rem;
-      transition: border-color 0.2s;
-    }
-
-    .boutique-input:focus, .boutique-select:focus {
-      border-color: #333;
-      outline: none;
-    }
-
-    .error-message {
-      color: #d32f2f;
-      font-size: 0.8rem;
-      margin-top: 0.5rem;
-    }
-
-    .warning-message {
-      color: #f57c00;
-      font-size: 0.8rem;
-      margin-top: 0.5rem;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-
-    .btn-primary, .btn-secondary {
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: #333;
-      color: white;
-      border: none;
-    }
-
-    .btn-primary:hover {
-      background: #555;
-    }
-
-    .btn-primary:disabled {
-      background: #999;
-      cursor: not-allowed;
-    }
-
-    .btn-secondary {
-      background: white;
-      color: #333;
-      border: 1px solid #333;
-    }
-
-    .btn-secondary:hover {
-      background: #f5f5f5;
-    }
-
-    .inventory-section {
-      margin-top: 3rem;
-    }
-
-    .section-title {
-      font-size: 1.75rem;
-      color: #333;
-      margin-bottom: 1.5rem;
-    }
-
-    .empty-message {
-      text-align: center;
-      padding: 2rem;
-      background: #f9f9f9;
-      border-radius: 8px;
-      color: #666;
-    }
-
-    .table-container {
-      overflow-x: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .boutique-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-    }
-
-    .boutique-table th {
-      background: #f5f5f5;
-      padding: 1rem;
-      text-align: left;
-      font-weight: 600;
-      color: #333;
-    }
-
-    .boutique-table td {
-      padding: 1rem;
-      border-top: 1px solid #eee;
-    }
-
-    .status-badge {
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-
-    .status-badge.active {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .status-badge.inactive {
-      background: #ffebee;
-      color: #c62828;
-    }
-
-    .btn-action {
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.8rem;
-      margin-right: 0.5rem;
-    }
-
-    .btn-action.edit {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-
-    .btn-action.history {
-      background: #fff3e0;
-      color: #f57c00;
-    }
-
-    .btn-action.delete {
-      background: #ffebee;
-      color: #c62828;
-    }
-
-    /* New switch styles */
-    .switch-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 60px;
-      height: 34px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 26px;
-      width: 26px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: .4s;
-    }
-
-    input:checked + .slider {
-      background-color: #333;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(26px);
-    }
-
-    .slider.round {
-      border-radius: 34px;
-    }
-
-    .slider.round:before {
-      border-radius: 50%;
-    }
-
-    .switch-label {
-      font-size: 0.9rem;
-      color: #666;
-    }
-
-    .proveedores-cell {
-      max-width: 200px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .actions-cell {
-      white-space: nowrap;
-    }
-  `]
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule,
+    FontAwesomeModule
+  ],
+  templateUrl: './producto-crud.component.html',
+  styleUrls: ['./producto-crud.component.css']
 })
 export class ProductoCrudComponent implements OnInit {
+  // Iconos de FontAwesome
+  faSignOutAlt = faSignOutAlt;
+  faSpinner = faSpinner;
+  faExclamationCircle = faExclamationCircle;
+
   productos: Producto[] = [];
   proveedores: Proveedor[] = [];
-  marcas: string[] = ['Zara', 'Adidas', 'H&M', 'Levis', 'Nike', 'Puma', 'Tommy Hilfiger', 'Calvin Klein', 'Versace' ]; // Lista de marcas predeterminadas
+  marcas: string[] = ['Zara', 'Adidas', 'H&M', 'Levis', 'Nike', 'Puma', 'Tommy Hilfiger', 'Calvin Klein', 'Versace'];
+  categorias: string[] = ['Camisas', 'Pantalones', 'Vestidos', 'Zapatos', 'Accesorios'];
   productoForm!: FormGroup;
   loading: boolean = true;
   loadingMessage: string = '';
@@ -523,14 +51,17 @@ export class ProductoCrudComponent implements OnInit {
   errorMessage: string = '';
   modoEdicion: boolean = false;
   productoIdEdicion: string | null = null;
+  nuevaImagenUrl: string = '';
+  imagenPrincipalSeleccionada: string | null = null;
+  imagenesEditando: ImagenProducto[] = [];
 
   constructor(
-    private authService: AuthService,
+    public authService: AuthService,
     private productoService: ProductoService,
     private fb: FormBuilder,
-    private router: Router // Agregar Router
+    private router: Router
   ) {
-    if(!this.authService.hasRole(['AlmaceninstaInventario'])){
+    if(!this.authService.hasRole(['AlmacenistaInventario'])){
       this.router.navigate(['/acceso-denegado']);
     }
   }
@@ -545,7 +76,8 @@ export class ProductoCrudComponent implements OnInit {
       codigoBarras: ['', [Validators.required, Validators.maxLength(10)]],
       nombre: ['', Validators.required],
       tamano: ['Mediano'],
-      marca: ['Marca1'],
+      marca: ['Zara'],
+      categoria: ['Camisas'],
       precioPieza: [0, [Validators.max(1000000)]],
       precioCaja: [0],
       piezasPorCaja: [0],
@@ -554,7 +86,8 @@ export class ProductoCrudComponent implements OnInit {
       existenciaAlmacen: [0, [Validators.min(0)]],
       existenciaExhibe: [0],
       proveedores: [[]],
-      activo: [true]
+      activo: [true],
+      imagenes: [[]]
     }, { validators: [this.stockValidator, this.existenciaValidator] });
   }
 
@@ -585,7 +118,6 @@ export class ProductoCrudComponent implements OnInit {
     
     this.productoService.getAllProductos().subscribe({
       next: (data) => {
-        console.log('Productos cargados:', data);
         this.productos = data || [];
         this.cargarProveedores();
       },
@@ -604,7 +136,6 @@ export class ProductoCrudComponent implements OnInit {
     
     this.productoService.getProveedores().subscribe({
       next: (data) => {
-        console.log('Proveedores cargados:', data);
         this.proveedores = data || [];
         this.loadingProveedores = false;
         this.loading = false;
@@ -622,7 +153,8 @@ export class ProductoCrudComponent implements OnInit {
   limpiarFormulario(): void {
     this.productoForm.reset({
       tamano: 'Mediano',
-      marca: 'Marca1',
+      marca: 'Zara',
+      categoria: 'Camisas',
       precioPieza: 0,
       precioCaja: 0,
       piezasPorCaja: 0,
@@ -631,10 +163,14 @@ export class ProductoCrudComponent implements OnInit {
       existenciaAlmacen: 0,
       existenciaExhibe: 0,
       proveedores: [],
-      activo: true
+      activo: true,
+      imagenes: []
     });
     this.modoEdicion = false;
     this.productoIdEdicion = null;
+    this.imagenesEditando = [];
+    this.imagenPrincipalSeleccionada = null;
+    this.nuevaImagenUrl = '';
   }
 
   editarProducto(producto: Producto): void {
@@ -650,11 +186,18 @@ export class ProductoCrudComponent implements OnInit {
         return typeof p === 'string' ? p : '';
       }).filter(p => p !== '');
     }
+
+    this.imagenesEditando = producto.imagenes ? [...producto.imagenes] : [];
+    if (producto.imagenes && producto.imagenes.length > 0) {
+      const principal = producto.imagenes.find(img => img.principal);
+      this.imagenPrincipalSeleccionada = principal ? principal._id || principal.url : null;
+    }
     
     const productoNormalizado = {
       ...producto,
       tamano: producto.tamano || 'Mediano',
-      marca: producto.marca || 'Marca1',
+      marca: producto.marca || 'Zara',
+      categoria: producto.categoria || 'Camisas',
       precioPieza: producto.precioPieza || 0,
       precioCaja: producto.precioCaja || 0,
       piezasPorCaja: producto.piezasPorCaja || 0,
@@ -670,6 +213,7 @@ export class ProductoCrudComponent implements OnInit {
       nombre: productoNormalizado.nombre,
       tamano: productoNormalizado.tamano,
       marca: productoNormalizado.marca,
+      categoria: productoNormalizado.categoria,
       precioPieza: productoNormalizado.precioPieza,
       precioCaja: productoNormalizado.precioCaja,
       piezasPorCaja: productoNormalizado.piezasPorCaja,
@@ -682,6 +226,47 @@ export class ProductoCrudComponent implements OnInit {
     });
   }
 
+  agregarImagen(): void {
+    if (!this.nuevaImagenUrl) {
+      alert('Por favor ingresa una URL válida');
+      return;
+    }
+
+    const urlPattern = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
+    if (!urlPattern.test(this.nuevaImagenUrl)) {
+      alert('La URL de la imagen no es válida');
+      return;
+    }
+
+    const nuevaImagen: ImagenProducto = {
+      url: this.nuevaImagenUrl,
+      principal: this.imagenesEditando.length === 0
+    };
+
+    this.imagenesEditando.push(nuevaImagen);
+    this.nuevaImagenUrl = '';
+
+    if (this.imagenesEditando.length === 1) {
+      this.imagenPrincipalSeleccionada = nuevaImagen.url;
+    }
+  }
+
+  eliminarImagen(index: number): void {
+    this.imagenesEditando.splice(index, 1);
+    if (this.imagenPrincipalSeleccionada && this.imagenesEditando.length > 0) {
+      if (!this.imagenesEditando.some(img => img.url === this.imagenPrincipalSeleccionada || img._id === this.imagenPrincipalSeleccionada)) {
+        this.imagenPrincipalSeleccionada = this.imagenesEditando[0]._id || this.imagenesEditando[0].url;
+      }
+    } else if (this.imagenesEditando.length === 0) {
+      this.imagenPrincipalSeleccionada = null;
+    }
+  }
+
+  marcarComoPrincipal(index: number): void {
+    const imagen = this.imagenesEditando[index];
+    this.imagenPrincipalSeleccionada = imagen._id || imagen.url;
+  }
+
   guardarProducto(): void {
     if (this.productoForm.invalid) {
       Object.keys(this.productoForm.controls).forEach(key => {
@@ -691,7 +276,16 @@ export class ProductoCrudComponent implements OnInit {
       return;
     }
     
-    const productoData = {...this.productoForm.value};
+    const imagenesParaGuardar = this.imagenesEditando.map((img, index) => ({
+      url: img.url,
+      orden: index,
+      principal: (img._id ? img._id === this.imagenPrincipalSeleccionada : img.url === this.imagenPrincipalSeleccionada)
+    }));
+
+    const productoData = {
+      ...this.productoForm.value,
+      imagenes: imagenesParaGuardar
+    };
     
     if (!Array.isArray(productoData.proveedores)) {
       productoData.proveedores = productoData.proveedores ? [productoData.proveedores] : [];
@@ -762,11 +356,20 @@ export class ProductoCrudComponent implements OnInit {
     }
     return typeof proveedor === 'string' ? `ID: ${proveedor}` : 'Desconocido';
   }
+
+  getImagenPrincipal(producto: Producto): string {
+    if (producto.imagenes && producto.imagenes.length > 0) {
+      const principal = producto.imagenes.find(img => img.principal);
+      return principal ? principal.url : producto.imagenes[0].url;
+    }
+    return 'https://via.placeholder.com/300x300.png?text=Sin+imagen';
+  }
+
   limitarLongitud(event: Event, maxLength: number): void {
     const input = event.target as HTMLInputElement;
     if (input.value.length > maxLength) {
-      input.value = input.value.slice(0, maxLength); // Trunca el valor
-      this.productoForm.get('codigoBarras')?.setValue(input.value); // Actualiza el formulario
+      input.value = input.value.slice(0, maxLength);
+      this.productoForm.get('codigoBarras')?.setValue(input.value);
     }
   }
 }

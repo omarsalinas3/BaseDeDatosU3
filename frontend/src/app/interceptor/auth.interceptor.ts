@@ -1,36 +1,43 @@
-// auth.interceptor.ts
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
-import { throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { AuthService } from '../services/auth.service';
+import { ToastrService } from 'ngx-toastr';
+import { catchError, throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  
-  // Se obtiene el token
-  const token = authService.obtenerToken();
-  
-  // Si existe un token se agrega al header
-  if(token) {
-    req = req.clone({
-      setHeaders: {
-        Autorizacion: `Bearer ${token}`
-      }
-    });
+  const toastr = inject(ToastrService);
+
+  if (req.url.includes('/login') || req.url.includes('/registro')) {
+    return next(req);
   }
-  
-  return next(req).pipe(
+
+  const token = authService.obtenerToken();
+  const authReq = token ? req.clone({
+    setHeaders: {
+      Authorization: `Bearer ${token}`
+    }
+  }) : req;
+
+  return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if(error.status === 401) {
-        authService.logout();
-        router.navigate(['/login']);
-      } else if(error.status === 403) {
+      if (error.status === 401) {
+        authService.logout(false);
+        toastr.error('Sesión expirada', 'Error');
+        router.navigate(['/login'], { 
+          queryParams: { returnUrl: router.url } 
+        });
+      } 
+      else if (error.status === 403) {
+        toastr.warning('No tienes permisos para esta acción', 'Acceso denegado');
         router.navigate(['/acceso-denegado']);
       }
-      
+      else {
+        toastr.error(error.error?.message || 'Error en la solicitud', 'Error');
+      }
+
       return throwError(() => error);
     })
   );

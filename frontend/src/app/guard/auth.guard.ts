@@ -1,33 +1,27 @@
-// auth.guard.ts
 import { inject } from '@angular/core';
-import { Router, CanActivateFn } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { ToastrService } from 'ngx-toastr';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  
+  const toastr = inject(ToastrService);
 
-  if(!authService.isLoggedIn()) {
-    router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
-    return false;
+  if (!authService.isLoggedIn()) {
+    if (!state.url.includes('acceso-denegado')) {
+      toastr.warning('Debes iniciar sesión para acceder');
+    }
+    return router.createUrlTree(['/login'], { 
+      queryParams: { returnUrl: state.url } 
+    });
   }
-  
-  // Verificamos los roles si están definidos en la ruta
-  /*const rolesRequeridos = route.data['roles'] as string[];
-  if(rolesRequeridos && rolesRequeridos.length > 0) {
-    const userRole = authService.currentUserValor?.rol;
-    
-    if(!userRole) {
-      router.navigate(['/acceso-denegado']);
-      return false;
-    }
 
-    if(!rolesRequeridos.includes(userRole)){
-      router.navigate(['/acceso-denegado']);
-      return false;
-    }
-  }*/
-  
+  const rolesRequeridos = route.data['roles'] as string[];
+  if (rolesRequeridos && !authService.hasRole(rolesRequeridos)) {
+    toastr.error('No tienes permisos para acceder');
+    return router.createUrlTree(['/acceso-denegado']);
+  }
+
   return true;
 };

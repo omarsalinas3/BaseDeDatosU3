@@ -1,9 +1,16 @@
-// Modelo Producto.model.ts actualizado
+// Modelo Producto.model.ts actualizado con imágenes
 export interface HistorialPrecio {
   precioAnterior: number;
   fechaInicio: Date | string;
   fechaFin: Date | string;
   _id: string;
+}
+
+export interface ImagenProducto {
+  url: string;
+  orden?: number;
+  principal?: boolean;
+  _id?: string;
 }
 
 export interface Producto {
@@ -22,4 +29,8 @@ export interface Producto {
   proveedores: Array<string | { _id: string; nombre: string }>;
   activo: boolean;
   historialPrecios?: HistorialPrecio[];
+  imagenes?: ImagenProducto[];
+  categoria?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }

@@ -1,17 +1,19 @@
-import {  Injectable } from '@angular/core';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { ToastrService } from 'ngx-toastr';
 
-export interface Usuario {
+interface Usuario {
   id: string;
   nombreUsuario: string;
   email: string;
   rol: string;
 }
 
-export interface AuthResponse {
+interface AuthResponse {
   success: boolean;
   data: {
     token: string;
@@ -27,105 +29,101 @@ export class AuthService {
   private apiUrl = "http://localhost:3000/api/auth";
   private currentUserSubject: BehaviorSubject<Usuario | null>;
   public currentUser: Observable<Usuario | null>;
-  private tokenExpirationTimer: any;
+  private jwtHelper = new JwtHelperService();
 
-  constructor(private http: HttpClient, private router: Router){
-    const storedUser = localStorage.getItem('currentUser');
-    this.currentUserSubject = new BehaviorSubject<Usuario | null>(storedUser ? JSON.parse(storedUser) : null);
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private toastr: ToastrService
+  ) {
+    this.currentUserSubject = new BehaviorSubject<Usuario | null>(
+      JSON.parse(localStorage.getItem('currentUser') || 'null')
+    );
     this.currentUser = this.currentUserSubject.asObservable();
+  }
 
-    //Verificamos el token al inciar la aplicacion
-    if(this.obtenerToken()){
-      this.validarToken();
+  registro(userData: any): Observable<Usuario> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/registro`, userData).pipe(
+      map(response => {
+        if (response.success && response.data.usuario) {
+          this.toastr.success('Registro exitoso');
+          return response.data.usuario;
+        }
+        throw new Error(response.message || "Error al registrar usuario");
+      }),
+      catchError(error => {
+        this.toastr.error(error.error?.message || 'Error en el registro');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  login(email: string, password: string): Observable<Usuario> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('currentUser', JSON.stringify(response.data.usuario));
+          this.currentUserSubject.next(response.data.usuario);
+          this.redireccionarPorRol(response.data.usuario);
+          return response.data.usuario;
+        }
+        throw new Error(response.message || "Error en la autenticación");
+      }),
+      catchError(error => {
+        this.toastr.error(error.error?.message || 'Credenciales inválidas');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  public redireccionarPorRol(usuario: Usuario): void {
+    const returnUrl = this.router.parseUrl(this.router.url).queryParams['returnUrl'];
+    
+    switch(usuario.rol) {
+      case 'Cliente':
+        this.router.navigateByUrl(returnUrl || '/cliente');
+        break;
+      case 'AlmacenistaInventario':
+        this.router.navigateByUrl(returnUrl || '/inventario');
+        break;
+      case 'AlmacenistaExhibidor':
+        this.router.navigateByUrl(returnUrl || '/exhibidor');
+        break;
+      default:
+        this.router.navigate(['/']);
     }
   }
 
-  public get currentUserValor(): Usuario | null {
-    return this.currentUserSubject.value;
-  }
-
-  registro(userData: any): Observable<Usuario>{
-    return this.http.post<AuthResponse>(`${this.apiUrl}/registro`, userData).pipe(
-      map(response => {
-        if(response.success && response.data.usuario){
-          return response.data.usuario;
-        }else{
-          throw new Error(response.message || "Error al registrar usuario");
-        }
-      }),
-      catchError(error => {
-        const errorMsg = error.error?.message || error.message || "Error en el servidor";
-        return throwError(() => new Error(errorMsg));
-      })
-    );
-  }
-
-  login(email: string, password: string): Observable<Usuario>{
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
-      map(response => {
-        if(response.success && response.data){
-          //Se guarda el token en almacenamiento local
-          localStorage.setItem('token', response.data.token);
-          localStorage.setItem('currentUser', JSON.stringify(response.data.usuario));
-
-          //Se actualiza el BehaiviorSubject
-          this.currentUserSubject.next(response.data.usuario);
-
-          //Se configura el temporizador para la expiracion del token
-          this.autoLogout(1 * 60 * 60 * 1000); // 1 hora en milisegundos
-
-          return response.data.usuario;
-        }else{
-          throw new Error(response.message || "Error en la autenticacion");
-        }
-      }),
-      catchError(error => {
-        return throwError(() => new Error(error.error?.message || "Credenciales invalidas"));
-      })
-    );
-  }
-
-  logout(): void{
+  logout(showMessage: boolean = true): void {
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
-
-    if(this.tokenExpirationTimer){
-      clearTimeout(this.tokenExpirationTimer);
-      this.tokenExpirationTimer = null;
+    if (showMessage) {
+      this.toastr.info('Sesión cerrada');
     }
+    this.router.navigate(['/login']);
   }
 
-  obtenerToken(): string | null{
+  obtenerToken(): string | null {
     return localStorage.getItem('token');
   }
 
-  validarToken(): void{
-    this.http.get<any>(`${this.apiUrl}/yo`).pipe(
-      catchError(()=>{
-        this.logout();
-        return throwError(() => new Error("Token expirado"));
-      })
-    ).subscribe();
+  isLoggedIn(): boolean {
+    const token = this.obtenerToken();
+    return !!token && !this.jwtHelper.isTokenExpired(token);
   }
 
-  isLoggedIn(): boolean{
-    return !!this.currentUserValor;
+  get currentUserValue(): Usuario | null {
+    return this.currentUserSubject.value;
   }
 
-  hasRole(rolesRequeridos: string[]): boolean{
-    const userRole = this.currentUserValor?.rol;
-    return !!userRole && rolesRequeridos.includes(userRole);
+  getUsuarioRol(): string | null {
+    return this.currentUserValue?.rol || null;
   }
 
-  obtenerRolDelUsuario(): string | null{
-    return this.currentUserValor?.rol || null;
-  }
-
-  private autoLogout(expirationDuration: number): void{
-    this.tokenExpirationTimer = setTimeout(() => {
-      this.logout();
-    }, expirationDuration);
+  hasRole(roles: string[]): boolean {
+    const userRole = this.currentUserValue?.rol;
+    return !!userRole && roles.includes(userRole);
   }
 }

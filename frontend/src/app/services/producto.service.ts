@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, throwError, timeout, tap, map } from 'rxjs';
-import { Producto } from '../models/producto.model';
+import { Producto, ImagenProducto } from '../models/producto.model';
 
 // Interface for provider response
 interface ProveedorResponse {
@@ -44,7 +44,6 @@ export class ProductoService {
       .pipe(
         tap(response => console.log('Respuesta del servidor (productos):', response)),
         map(response => {
-          // Manejar diferentes formatos de respuesta
           if (response && response.data && Array.isArray(response.data)) {
             return response.data;
           } else if (Array.isArray(response)) {
@@ -70,8 +69,17 @@ export class ProductoService {
       );
   }
 
-  getProductosParaClientes(): Observable<Producto[]>{
-    return this.http.get<Producto[]>(`${this.apiUrl}/productos/cliente`);
+  getProductosParaClientes(): Observable<Producto[]> {
+    return this.http.get<any>(`http://localhost:3000/api/productos/cliente`, { headers: this.getHeaders() })
+      .pipe(
+        map(response => {
+          if (response && response.success && response.data) {
+            return response.data; // Extrae el array de productos
+          }
+          return [];
+        }),
+        catchError(this.handleError)
+      );
   }
 
   getHistorialPrecios(id: string): Observable<HistorialPrecio[]> {
@@ -100,7 +108,6 @@ export class ProductoService {
       .pipe(
         tap(response => console.log('Respuesta del servidor (proveedores):', response)),
         map(response => {
-          // Manejar respuesta con formato { success, message, data }
           if (response && response.data && Array.isArray(response.data)) {
             return response.data.map((proveedor: ProveedorResponse) => ({
               _id: proveedor._id,
@@ -133,10 +140,6 @@ export class ProductoService {
 
   updateProducto(id: string, producto: Producto): Observable<Producto> {
     console.log(`Actualizando producto ${id}:`, producto);
-    
-    // Nota: El backend se encarga de actualizar el historial de precios
-    // No intentamos manipular el historial aquí
-    
     return this.http.put<any>(`${this.apiUrl}/${id}`, producto, { headers: this.getHeaders() })
       .pipe(
         tap(response => console.log('Producto actualizado:', response)),
@@ -154,19 +157,46 @@ export class ProductoService {
       );
   }
 
+  // Nuevos métodos para manejo de imágenes
+  agregarImagen(productoId: string, imagenData: ImagenProducto): Observable<Producto> {
+    console.log(`Agregando imagen al producto ${productoId}:`, imagenData);
+    return this.http.post<any>(`${this.apiUrl}/${productoId}/imagenes`, imagenData, { headers: this.getHeaders() })
+      .pipe(
+        tap(response => console.log('Imagen agregada:', response)),
+        map(response => response && response.data ? response.data : response),
+        catchError(this.handleError)
+      );
+  }
+
+  eliminarImagen(productoId: string, imagenId: string): Observable<Producto> {
+    console.log(`Eliminando imagen ${imagenId} del producto ${productoId}`);
+    return this.http.delete<any>(`${this.apiUrl}/${productoId}/imagenes/${imagenId}`, { headers: this.getHeaders() })
+      .pipe(
+        tap(response => console.log('Imagen eliminada:', response)),
+        map(response => response && response.data ? response.data : response),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
-    console.error('Error en la petición HTTP:', error);
+    console.error('Error completo:', error);
     
-    let errorMsg = 'Ha ocurrido un error en la comunicación con el servidor';
-    if (error.error instanceof ErrorEvent) {
-      errorMsg = `Error del cliente: ${error.error.message}`;
+    let errorMsg = 'Error en la comunicación con el servidor';
+    
+    if (error.status === 0) {
+      errorMsg = 'Error de conexión: El servidor no responde';
+    } else if (error.status === 404) {
+      errorMsg = 'Recurso no encontrado';
+    } else if (error.error?.message) {
+      errorMsg = error.error.message;
     } else {
-      errorMsg = `Error del servidor: Código ${error.status}, mensaje: ${error.message}`;
-      if (error.error && typeof error.error === 'object') {
-        errorMsg += `, detalles: ${JSON.stringify(error.error)}`;
-      }
+      errorMsg = `Error ${error.status}: ${error.message}`;
     }
     
     return throwError(() => new Error(errorMsg));
   }
-}
+    
+    
+  
+  }
+  

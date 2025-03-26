@@ -4,6 +4,7 @@ import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
@@ -27,11 +28,14 @@ export class LoginComponent implements OnInit {
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private toastr: ToastrService
   ) {
-    // Redireccionar si ya está logueado
     if (this.authService.isLoggedIn()) {
-      this.redireccionarBaseAlRole();
+      const usuario = this.authService.currentUserValue;
+      if (usuario) {
+        this.authService.redireccionarPorRol(usuario);
+      }
     }
   }
 
@@ -41,65 +45,30 @@ export class LoginComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
 
-    // Obtener url de retorno de los parámetros de la ruta o usar '/'
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || this.getDefaultRouteForCurrentUser();
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
   }
 
-  // Acceso fácil a los campos del formulario
   get f() { return this.loginForm.controls; }
 
   onSubmit(): void {
     this.submitted = true;
 
-    // Detener si el formulario es inválido
     if (this.loginForm.invalid) {
       return;
     }
 
     this.loading = true;
+    this.error = '';
+
     this.authService.login(this.f['email'].value, this.f['password'].value)
       .subscribe({
-        next: () => {
-          this.redireccionarBaseAlRole();
+        next: (usuario) => {
+          this.toastr.success(`Bienvenido ${usuario.nombreUsuario}`);
         },
-        error: error => {
+        error: (error) => {
           this.error = error.message || 'Error de autenticación';
           this.loading = false;
         }
       });
-  }
-
-  private redireccionarBaseAlRole(): void {
-    const rol = this.authService.obtenerRolDelUsuario();
-
-    switch (rol) {
-      case 'Cliente':
-        this.router.navigate(['/cliente']);
-        break;
-      case 'AlmacenistaInventario':
-        this.router.navigate(['/inventario']);
-        break;
-      case 'AlmacenistaExhibidor':
-        this.router.navigate(['/exhibidor']);
-        break;
-      default:
-        this.router.navigate(['/']);
-    }
-  }
-
-  private getDefaultRouteForCurrentUser(): string {
-    const user = this.authService.currentUserValor;
-    if (!user) return '/';
-
-    switch (user.rol) {
-      case 'Cliente':
-        return '/cliente/dashboard';
-      case 'AlmacenistaInventario':
-        return '/inventario/dashboard';
-      case 'AlmacenistaExhibidor':
-        return '/exhibidor/dashboard';
-      default:
-        return '/';
-    }
   }
 }

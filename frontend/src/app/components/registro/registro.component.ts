@@ -16,7 +16,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './registro.component.html',
   styleUrl: './registro.component.css'
 })
-export class RegisterComponent implements OnInit{
+export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
   loading = false;
   submitted = false;
@@ -31,25 +31,24 @@ export class RegisterComponent implements OnInit{
     private formBuilder: FormBuilder,
     private router: Router,
     private authService: AuthService
-  ){
-    if(this.authService.isLoggedIn()){
+  ) {
+    if (this.authService.isLoggedIn()) {
       this.router.navigate(['/']);
     }
   }
 
   ngOnInit(): void {
-      this.registerForm = this.formBuilder.group({
-        nombreUsuario: ['', [Validators.required, Validators.minLength(3)]],
-        email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmarPassword: ['', Validators.required],
-        rol: ['Cliente', Validators.required]
-      }, {
-        validators: this.mustMatch('password', 'confirmarPassword')
-      });
+    this.registerForm = this.formBuilder.group({
+      nombreUsuario: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      confirmarPassword: ['', Validators.required],
+      rol: ['Cliente', Validators.required]
+    }, {
+      validators: this.mustMatch('password', 'confirmarPassword')
+    });
   }
-  
-  //Acceder facilmente a los campos del formulario
+
   get f() { return this.registerForm.controls; }
 
   mustMatch(controlName: string, matchingControlName: string) {
@@ -57,24 +56,22 @@ export class RegisterComponent implements OnInit{
       const control = formGroup.controls[controlName];
       const matchingControl = formGroup.controls[matchingControlName];
 
-      if(matchingControl.errors && !matchingControl.errors['mustMatch']){
+      if (matchingControl.errors && !matchingControl.errors['mustMatch']) {
         return;
       }
 
-      
-    if(control.value !== matchingControl.value){
-      matchingControl.setErrors({ mustMatch: true });
-    }else{
-      matchingControl.setErrors(null);
-    }
+      if (control.value !== matchingControl.value) {
+        matchingControl.setErrors({ mustMatch: true });
+      } else {
+        matchingControl.setErrors(null);
+      }
     };
   }
 
-  onSubmit(): void{
+  onSubmit(): void {
     this.submitted = true;
 
-    //Detener si el formulario es inválido
-    if(this.registerForm.invalid){
+    if (this.registerForm.invalid) {
       return;
     }
 
@@ -87,19 +84,16 @@ export class RegisterComponent implements OnInit{
     };
 
     this.authService.registro(userData)
-    .subscribe({
-      next: ()=> {
-        this.router.navigate(['/login'], {
-          queryParams: { registered: true }
-        });
-      },
-      error: error=>{
-        this.error = error.message || 'Error al registrar usuario';
-        this.loading = false;
-      }
-    });
-   }
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/login'], {
+            queryParams: { registered: true }
+          });
+        },
+        error: (error: Error) => {
+          this.error = error.message || 'Error al registrar usuario';
+          this.loading = false;
+        }
+      });
+  }
 }
-
-
-
