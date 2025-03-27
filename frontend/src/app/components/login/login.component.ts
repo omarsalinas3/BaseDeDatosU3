@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -22,11 +22,9 @@ export class LoginComponent implements OnInit {
   loading = false;
   submitted = false;
   error = '';
-  returnUrl: string = '/';
 
   constructor(
     private formBuilder: FormBuilder,
-    private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
     private toastr: ToastrService
@@ -44,8 +42,6 @@ export class LoginComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
-
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
   }
 
   get f() { return this.loginForm.controls; }
@@ -64,9 +60,10 @@ export class LoginComponent implements OnInit {
       .subscribe({
         next: (usuario) => {
           this.toastr.success(`Bienvenido ${usuario.nombreUsuario}`);
+          this.router.navigate(['/']);
         },
         error: (error) => {
-          this.error = error.message || 'Error de autenticación';
+          this.toastr.error(error.message || 'Error de autenticación');
           this.loading = false;
         }
       });
