@@ -1,86 +1,94 @@
 <div class="dashboard-container">
-    <header class="dashboard-header">
-      <div class="header-content">
-        <h1>Panel de Exhibidor</h1>
-        <div class="user-info">
-          <span>Bienvenido, {{usuarioActual?.nombreUsuario}}</span>
-          <button class="logout-btn" (click)="authService.logout()">
-            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-          </button>
-        </div>
-      </div>
-      
-      <div class="search-bar">
-        <input type="text" [(ngModel)]="filtroBusqueda" placeholder="Buscar productos...">
-        <i class="fas fa-search"></i>
-      </div>
-    </header>
-  
-    <div *ngIf="loading" class="loading-overlay">
-      <div class="spinner"></div>
-      <p>Cargando productos...</p>
-    </div>
-  
-    <div *ngIf="error" class="error-message">
-      <div class="error-content">
-        <i class="fas fa-exclamation-circle"></i>
-        <span>{{ error }}</span>
-        <button class="retry-btn" (click)="cargarProductos()">
-          <i class="fas fa-sync-alt"></i> Reintentar
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1>Panel de Exhibidor</h1>
+      <div class="user-info">
+        <span>Bienvenido, {{usuarioActual?.nombreUsuario}}</span>
+        <button class="logout-btn" (click)="authService.logout()">
+          <i class="fas fa-sign-out-alt"></i> Cerrar sesión
         </button>
       </div>
     </div>
-  
-    <div *ngIf="!loading && !error" class="productos-container">
-      <div *ngIf="productosFiltrados.length === 0" class="no-results">
-        <i class="fas fa-box-open"></i>
-        <p>No se encontraron productos</p>
-      </div>
-  
-      <div class="productos-grid">
-        <div *ngFor="let producto of productosFiltrados" class="producto-card" (click)="seleccionarProducto(producto)">
-          <div class="producto-imagen-container">
-            <img [src]="getImagenPrincipal(producto)" [alt]="producto.nombre" class="producto-imagen">
-            <div *ngIf="producto.stockExhibe <= 0" class="stock-badge agotado">AGOTADO</div>
-            <div *ngIf="producto.stockExhibe > 0 && producto.stockExhibe <= 5" class="stock-badge bajo">ÚLTIMAS UNIDADES</div>
-          </div>
-          <div class="producto-info">
-            <h3>{{ producto.nombre }}</h3>
-            <p class="marca">{{ producto.marca }}</p>
-            <p class="precio">{{ producto.precioPieza | currency:'USD':'symbol':'1.2-2' }}</p>
-            <p class="stock" [class.bajo-stock]="producto.stockExhibe <= 5">
-              Stock: {{ producto.stockExhibe }} unidades
-            </p>
-          </div>
+    
+    <div class="search-bar">
+      <input type="text" [(ngModel)]="filtroBusqueda" placeholder="Buscar productos...">
+      <i class="fas fa-search"></i>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Cargando productos...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <div class="error-content">
+      <i class="fas fa-exclamation-circle"></i>
+      <span>{{ error }}</span>
+      <button class="retry-btn" (click)="cargarProductos()">
+        <i class="fas fa-sync-alt"></i> Reintentar
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !error" class="productos-container">
+    <div *ngIf="productosFiltrados.length === 0" class="no-results">
+      <i class="fas fa-box-open"></i>
+      <p>No se encontraron productos</p>
+    </div>
+
+    <div class="productos-grid">
+      <div *ngFor="let producto of productosFiltrados" class="producto-card" (click)="seleccionarProducto(producto)">
+        <div class="producto-imagen-container">
+          <img [src]="getImagenPrincipal(producto)" [alt]="producto.nombre" class="producto-imagen">
+          <div *ngIf="producto.stockExhibe <= 0" class="stock-badge agotado">AGOTADO</div>
+          <div *ngIf="producto.stockExhibe> 0 && producto.stockExhibe <= 5" class="stock-badge bajo">ÚLTIMAS UNIDADES</div>
+        </div>
+        <div class="producto-info">
+          <h3>{{ producto.nombre || 'Sin nombre' }}</h3>
+          <p class="marca">{{ producto.marca || 'Sin marca' }}</p>
+          <p class="precio">{{ producto.precioPieza | currency:'USD':'symbol':'1.2-2' }}</p>
+          <p class="stock" [class.bajo-stock]="producto.stockExhibe <= 5">
+            Existencias: {{ producto.stockExhibe || 0 }} unidades
+          </p>
         </div>
       </div>
     </div>
-  
-    <app-modal *ngIf="mostrarModal && productoSeleccionado" (cerrar)="cerrarModal()">
-      <div class="modal-producto">
-        <div class="modal-imagen-container">
-          <img [src]="getImagenPrincipal(productoSeleccionado)" [alt]="productoSeleccionado.nombre" class="modal-imagen">
+  </div>
+
+  <app-modal *ngIf="mostrarModal && productoSeleccionado" (cerrar)="cerrarModal()">
+    <div class="modal-producto">
+      <div class="modal-imagen-container">
+        <img [src]="getImagenPrincipal(productoSeleccionado)" [alt]="productoSeleccionado.nombre" class="modal-imagen">
+      </div>
+      <div class="modal-info">
+        <h2>{{ productoSeleccionado.nombre }}</h2>
+        <p class="marca">{{ productoSeleccionado.marca }}</p>
+        
+        <div class="detalles">
+          <p><strong>Precio:</strong> {{ productoSeleccionado.precioPieza | currency:'USD':'symbol':'1.2-2' }}</p>
+          <p><strong>Talla:</strong> {{ productoSeleccionado.tamano }}</p>
+          <p><strong>Código:</strong> {{ productoSeleccionado.codigoBarras }}</p>
+          <p><strong>Stock disponible:</strong> {{ productoSeleccionado.stockExhibe }}</p>
         </div>
-        <div class="modal-info">
-          <h2>{{ productoSeleccionado.nombre }}</h2>
-          <p class="marca">{{ productoSeleccionado.marca }}</p>
-          
-          <div class="detalles">
-            <p><strong>Precio:</strong> {{ productoSeleccionado.precioPieza | currency:'USD':'symbol':'1.2-2' }}</p>
-            <p><strong>Talla:</strong> {{ productoSeleccionado.tamano }}</p>
-            <p><strong>Código:</strong> {{ productoSeleccionado.codigoBarras }}</p>
-            <p><strong>Stock disponible:</strong> {{ productoSeleccionado.stockExhibe }}</p>
+
+        <div class="agregar-stock">
+          <h3>Agregar al stock de exhibición</h3>
+          <div class="stock-control">
+            <input type="number" [(ngModel)]="cantidadAAgregar" min="1" placeholder="Cantidad">
+            <button (click)="agregarStock()">Agregar</button>
           </div>
-  
-          <div *ngIf="productoSeleccionado.proveedores && productoSeleccionado.proveedores.length > 0" class="proveedores">
-            <h3>Proveedores:</h3>
-            <ul>
-              <li *ngFor="let prov of productoSeleccionado.proveedores">
-                {{ getNombreProveedor(prov) }}
-              </li>
-            </ul>
-          </div>
+        </div>
+
+        <div *ngIf="productoSeleccionado.proveedores && productoSeleccionado.proveedores.length > 0" class="proveedores">
+          <h3>Proveedores:</h3>
+          <ul>
+            <li *ngFor="let prov of productoSeleccionado.proveedores">
+              {{ getNombreProveedor(prov) }}
+            </li>
+          </ul>
         </div>
       </div>
-    </app-modal>
-  </div>
+    </div>
+  </app-modal>
+</div>

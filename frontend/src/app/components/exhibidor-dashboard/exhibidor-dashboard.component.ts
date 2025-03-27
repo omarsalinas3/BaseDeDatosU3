@@ -22,6 +22,7 @@ export class ExhibidorDashboardComponent implements OnInit {
   error: string | null = null;
   usuarioActual: any;
   filtroBusqueda: string = '';
+  cantidadAAgregar: number = 0;
 
   constructor(
     private productoService: ProductoService,
@@ -45,8 +46,8 @@ export class ExhibidorDashboardComponent implements OnInit {
     
     this.productoService.getProductosParaClientes().subscribe({
       next: (response) => {
-        console.log('Primer producto recibido:', response[0]); // Verifica los campos
-        this.productos = response || [];
+        // Filtrar solo productos activos
+        this.productos = (response || []).filter(producto => producto.activo !== false);
         this.loading = false;
       },
       error: (err) => {
@@ -58,15 +59,41 @@ export class ExhibidorDashboardComponent implements OnInit {
   }
 
   seleccionarProducto(producto: Producto): void {
-    this.productoSeleccionado = producto;
+    this.productoSeleccionado = {...producto};
+    this.cantidadAAgregar = 0;
     this.mostrarModal = true;
   }
 
   cerrarModal(): void {
     this.mostrarModal = false;
     this.productoSeleccionado = null;
+    this.cantidadAAgregar = 0;
   }
-
+  agregarStock(): void {
+    if (!this.productoSeleccionado || !this.productoSeleccionado._id || this.cantidadAAgregar <= 0) {
+      alert('Ingrese una cantidad válida');
+      return;
+    }
+  
+    const updateData = {
+      stockExhibe: (this.productoSeleccionado.stockExhibe || 0) + this.cantidadAAgregar
+    };
+  
+    this.productoService.updateProducto(this.productoSeleccionado._id, updateData).subscribe({
+      next: (productoActualizado) => {
+        const index = this.productos.findIndex(p => p._id === productoActualizado._id);
+        if (index !== -1) {
+          this.productos[index] = productoActualizado;
+        }
+        this.cerrarModal();
+        alert('Stock actualizado correctamente');
+      },
+      error: (err) => {
+        console.error('Error al actualizar stock:', err);
+        alert('Error al actualizar el stock: ' + (err.error?.message || err.message || 'Error desconocido'));
+      }
+    });
+  }
   getImagenPrincipal(producto: Producto): string {
     if (producto.imagenes && producto.imagenes.length > 0) {
       const principal = producto.imagenes.find(img => img.principal);

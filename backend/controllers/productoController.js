@@ -54,12 +54,31 @@ const getById = async (req, res) => {
 // Actualizar un producto por ID
 const update = async (req, res) => {
   try {
-    // Convierte las cadenas en el array "proveedores" a ObjectId
-    if (req.body.proveedores && Array.isArray(req.body.proveedores)) {
-      req.body.proveedores = req.body.proveedores.map((id) => new mongoose.Types.ObjectId(id));
+    // Validar el ID del producto
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: "ID de producto no válido" });
     }
 
-    // Procesar imágenes si vienen en el cuerpo
+    // Validar y convertir proveedores
+    if (req.body.proveedores && Array.isArray(req.body.proveedores)) {
+      req.body.proveedores = req.body.proveedores.map(prov => {
+        // Si es un objeto con _id, usar ese _id
+        if (prov && typeof prov === 'object' && prov._id) {
+          return mongoose.Types.ObjectId.isValid(prov._id) 
+            ? new mongoose.Types.ObjectId(prov._id)
+            : prov._id;
+        }
+        // Si es una cadena, validarla
+        else if (typeof prov === 'string') {
+          return mongoose.Types.ObjectId.isValid(prov) 
+            ? new mongoose.Types.ObjectId(prov)
+            : prov;
+        }
+        return prov;
+      });
+    }
+
+    // Procesar imágenes
     if (req.body.imagenes && Array.isArray(req.body.imagenes)) {
       req.body.imagenes = req.body.imagenes.map((img, index) => ({
         url: img.url,
@@ -75,10 +94,13 @@ const update = async (req, res) => {
     res.status(200).json({ data: producto });
   } catch (error) {
     console.error("Error en update:", error);
-    res.status(400).json({ error: "Error al actualizar el producto", details: error.message });
+    res.status(400).json({ 
+      error: "Error al actualizar el producto", 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
-
 // Eliminar un producto por ID
 const deleteById = async (req, res) => {
   try {

@@ -70,14 +70,21 @@ export class ProductoService {
   }
 
   getProductosParaClientes(): Observable<Producto[]> {
-    return this.http.get<any>(`http://localhost:3000/api/productos/cliente`, { headers: this.getHeaders() })
+    return this.http.get<any>(`${this.apiUrl}/cliente`, { headers: this.getHeaders() })
       .pipe(
+        tap(response => console.log('Respuesta cruda de productos para clientes:', response)),
         map(response => {
-          if (response && response.success && response.data) {
-            return response.data; // Extrae el array de productos
-          }
-          return [];
+          // Verifica si la respuesta tiene la estructura esperada
+          const productos = response?.data || response || [];
+          
+          // Mapea los productos asegurando que existenciaExhibe tenga valor
+          return productos.map((producto: any) => ({
+            ...producto,
+            existenciaExhibe: producto.existenciaExhibe ?? producto.stockExhibe ?? 0,
+            imagenes: producto.imagenes || []
+          }));
         }),
+        tap(productos => console.log('Productos procesados:', productos)),
         catchError(this.handleError)
       );
   }
@@ -138,16 +145,18 @@ export class ProductoService {
       );
   }
 
-  updateProducto(id: string, producto: Producto): Observable<Producto> {
-    console.log(`Actualizando producto ${id}:`, producto);
-    return this.http.put<any>(`${this.apiUrl}/${id}`, producto, { headers: this.getHeaders() })
-      .pipe(
-        tap(response => console.log('Producto actualizado:', response)),
-        map(response => response && response.data ? response.data : response),
-        catchError(this.handleError)
-      );
-  }
-
+  // Cambia la firma del método para aceptar Partial<Producto>
+// Cambia la firma del método para aceptar Partial<Producto>
+// En producto.service.ts
+// Cambia la firma del método para aceptar Partial<Producto>
+updateProducto(id: string, partialProducto: Partial<Producto>): Observable<Producto> {
+  console.log(`Actualizando producto ${id}:`, partialProducto);
+  return this.http.put<Producto>(`${this.apiUrl}/${id}`, partialProducto, { headers: this.getHeaders() })
+    .pipe(
+      tap(response => console.log('Producto actualizado:', response)),
+      catchError(this.handleError)
+    );
+}
   deleteProducto(id: string): Observable<any> {
     console.log(`Eliminando producto ${id}`);
     return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() })
