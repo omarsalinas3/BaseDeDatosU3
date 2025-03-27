@@ -1,0 +1,267 @@
+.dashboard-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .dashboard-header {
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .logout-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .logout-btn:hover {
+    background: #c82333;
+  }
+  
+  .search-bar {
+    position: relative;
+    max-width: 500px;
+  }
+  
+  .search-bar input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .search-bar i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #777;
+  }
+  
+  .loading-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  
+  .spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid #3498db;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .error-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .error-message i {
+    font-size: 20px;
+  }
+  
+  .retry-btn {
+    margin-left: auto;
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .no-results {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+  }
+  
+  .no-results i {
+    font-size: 50px;
+    margin-bottom: 15px;
+    color: #dee2e6;
+  }
+  
+  .productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  .producto-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+  }
+  
+  .producto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .producto-imagen-container {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+  }
+  
+  .producto-imagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  
+  .producto-card:hover .producto-imagen {
+    transform: scale(1.05);
+  }
+  
+  .stock-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .stock-badge.agotado {
+    background: #dc3545;
+  }
+  
+  .stock-badge.bajo {
+    background: #ffc107;
+    color: #212529;
+  }
+  
+  .producto-info {
+    padding: 15px;
+  }
+  
+  .producto-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .producto-info .marca {
+    color: #6c757d;
+    font-size: 14px;
+    margin: 0 0 10px 0;
+  }
+  
+  .producto-info .precio {
+    font-weight: bold;
+    color: #28a745;
+    margin: 0 0 5px 0;
+    font-size: 18px;
+  }
+  
+  .producto-info .stock {
+    font-size: 14px;
+    color: #28a745;
+    margin: 0;
+  }
+  
+  .producto-info .bajo-stock {
+    color: #ffc107;
+  }
+  
+  /* Estilos del modal */
+  .modal-producto {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .modal-imagen-container {
+    flex: 1;
+    max-width: 300px;
+  }
+  
+  .modal-imagen {
+    width: 100%;
+    border-radius: 8px;
+  }
+  
+  .modal-info {
+    flex: 2;
+  }
+  
+  .modal-info h2 {
+    margin-top: 0;
+  }
+  
+  .detalles p {
+    margin: 8px 0;
+  }
+  
+  .proveedores {
+    margin-top: 20px;
+  }
+  
+  .proveedores ul {
+    padding-left: 20px;
+    margin: 5px 0;
+  }
+  
+  @media (max-width: 768px) {
+    .modal-producto {
+      flex-direction: column;
+    }
+    
+    .modal-imagen-container {
+      max-width: 100%;
+    }
+    
+    .productos-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+  }

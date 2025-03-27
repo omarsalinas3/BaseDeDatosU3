@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, throwError, timeout, tap, map } from 'rxjs';
-import { Producto } from '../models/producto.model';
+import { Producto, ImagenProducto } from '../models/producto.model';
 
 // Interface for provider response
 interface ProveedorResponse {
@@ -12,10 +12,9 @@ interface ProveedorResponse {
 
 // Interface para el historial de precios
 interface HistorialPrecio {
+  precioAnterior: number;
   fechaInicio: Date;
   fechaFin: Date;
-  precioPieza: number;
-  precioCaja: number;
 }
 
 @Injectable({
@@ -45,7 +44,6 @@ export class ProductoService {
       .pipe(
         tap(response => console.log('Respuesta del servidor (productos):', response)),
         map(response => {
-          // Manejar diferentes formatos de respuesta
           if (response && response.data && Array.isArray(response.data)) {
             return response.data;
           } else if (Array.isArray(response)) {
@@ -67,6 +65,19 @@ export class ProductoService {
         tap(response => console.log('Respuesta del servidor (producto):', response)),
         map(response => response && response.data ? response.data : response),
         timeout(15000),
+        catchError(this.handleError)
+      );
+  }
+
+  getProductosParaClientes(): Observable<Producto[]> {
+    return this.http.get<any>(`http://localhost:3000/api/productos/cliente`, { headers: this.getHeaders() })
+      .pipe(
+        map(response => {
+          if (response && response.success && response.data) {
+            return response.data; // Extrae el array de productos
+          }
+          return [];
+        }),
         catchError(this.handleError)
       );
   }
@@ -97,7 +108,6 @@ export class ProductoService {
       .pipe(
         tap(response => console.log('Respuesta del servidor (proveedores):', response)),
         map(response => {
-          // Manejar respuesta con formato { success, message, data }
           if (response && response.data && Array.isArray(response.data)) {
             return response.data.map((proveedor: ProveedorResponse) => ({
               _id: proveedor._id,
@@ -130,31 +140,6 @@ export class ProductoService {
 
   updateProducto(id: string, producto: Producto): Observable<Producto> {
     console.log(`Actualizando producto ${id}:`, producto);
-    
-    // Verificar si hay cambio en el precio para registrar historial
-    if (id) {
-      this.getProductoById(id).subscribe({
-        next: (productoActual) => {
-          if (productoActual && 
-              (productoActual.precioPieza !== producto.precioPieza || 
-               productoActual.precioCaja !== producto.precioCaja)) {
-            
-            // Registrar el precio anterior en el historial
-            const historial = producto.historialPrecios || [];
-            historial.push({
-              precioAnterior: productoActual.precioPieza,
-              fechaInicio: new Date(productoActual.historialPrecios ? 
-                productoActual.historialPrecios[productoActual.historialPrecios.length - 1]?.fechaInicio || new Date() : 
-                new Date()),
-              fechaFin: new Date()
-            });
-            producto.historialPrecios = historial;
-          }
-        },
-        error: (err) => console.error('Error al obtener producto para historial:', err)
-      });
-    }
-    
     return this.http.put<any>(`${this.apiUrl}/${id}`, producto, { headers: this.getHeaders() })
       .pipe(
         tap(response => console.log('Producto actualizado:', response)),
@@ -172,19 +157,46 @@ export class ProductoService {
       );
   }
 
+  // Nuevos métodos para manejo de imágenes
+  agregarImagen(productoId: string, imagenData: ImagenProducto): Observable<Producto> {
+    console.log(`Agregando imagen al producto ${productoId}:`, imagenData);
+    return this.http.post<any>(`${this.apiUrl}/${productoId}/imagenes`, imagenData, { headers: this.getHeaders() })
+      .pipe(
+        tap(response => console.log('Imagen agregada:', response)),
+        map(response => response && response.data ? response.data : response),
+        catchError(this.handleError)
+      );
+  }
+
+  eliminarImagen(productoId: string, imagenId: string): Observable<Producto> {
+    console.log(`Eliminando imagen ${imagenId} del producto ${productoId}`);
+    return this.http.delete<any>(`${this.apiUrl}/${productoId}/imagenes/${imagenId}`, { headers: this.getHeaders() })
+      .pipe(
+        tap(response => console.log('Imagen eliminada:', response)),
+        map(response => response && response.data ? response.data : response),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
-    console.error('Error en la petición HTTP:', error);
+    console.error('Error completo:', error);
     
-    let errorMsg = 'Ha ocurrido un error en la comunicación con el servidor';
-    if (error.error instanceof ErrorEvent) {
-      errorMsg = `Error del cliente: ${error.error.message}`;
+    let errorMsg = 'Error en la comunicación con el servidor';
+    
+    if (error.status === 0) {
+      errorMsg = 'Error de conexión: El servidor no responde';
+    } else if (error.status === 404) {
+      errorMsg = 'Recurso no encontrado';
+    } else if (error.error?.message) {
+      errorMsg = error.error.message;
     } else {
-      errorMsg = `Error del servidor: Código ${error.status}, mensaje: ${error.message}`;
-      if (error.error && typeof error.error === 'object') {
-        errorMsg += `, detalles: ${JSON.stringify(error.error)}`;
-      }
+      errorMsg = `Error ${error.status}: ${error.message}`;
     }
     
     return throwError(() => new Error(errorMsg));
   }
-}
+    
+    
+  
+  }
+  

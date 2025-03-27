@@ -5,7 +5,7 @@ const productoService = require("../services/productoService");
 const getAll = async (req, res) => {
   try {
     const productos = await productoService.getAllProductos();
-    res.status(200).json(productos);
+    res.status(200).json({ data: productos });
   } catch (error) {
     console.error("Error en getAll:", error);
     res.status(500).json({ error: "Error al obtener los productos" });
@@ -20,8 +20,17 @@ const create = async (req, res) => {
       req.body.proveedores = req.body.proveedores.map((id) => new mongoose.Types.ObjectId(id));
     }
 
+    // Procesar imágenes si vienen en el cuerpo
+    if (req.body.imagenes && Array.isArray(req.body.imagenes)) {
+      req.body.imagenes = req.body.imagenes.map((img, index) => ({
+        url: img.url,
+        orden: img.orden || index,
+        principal: img.principal || false
+      }));
+    }
+
     const nuevoProducto = await productoService.createProducto(req.body);
-    res.status(201).json(nuevoProducto);
+    res.status(201).json({ data: nuevoProducto });
   } catch (error) {
     console.error("Error en create:", error);
     res.status(400).json({ error: "Error al crear el producto", details: error.message });
@@ -35,7 +44,7 @@ const getById = async (req, res) => {
     if (!producto) {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
-    res.status(200).json(producto);
+    res.status(200).json({ data: producto });
   } catch (error) {
     console.error("Error en getById:", error);
     res.status(500).json({ error: "Error al obtener el producto" });
@@ -50,11 +59,20 @@ const update = async (req, res) => {
       req.body.proveedores = req.body.proveedores.map((id) => new mongoose.Types.ObjectId(id));
     }
 
+    // Procesar imágenes si vienen en el cuerpo
+    if (req.body.imagenes && Array.isArray(req.body.imagenes)) {
+      req.body.imagenes = req.body.imagenes.map((img, index) => ({
+        url: img.url,
+        orden: img.orden || index,
+        principal: img.principal || false
+      }));
+    }
+
     const producto = await productoService.updateProducto(req.params.id, req.body);
     if (!producto) {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
-    res.status(200).json(producto);
+    res.status(200).json({ data: producto });
   } catch (error) {
     console.error("Error en update:", error);
     res.status(400).json({ error: "Error al actualizar el producto", details: error.message });
@@ -75,10 +93,58 @@ const deleteById = async (req, res) => {
   }
 };
 
+// Obtener el historial de precios de un producto por ID
+const getHistorialPrecios = async (req, res) => {
+  try {
+    const historialPrecios = await productoService.getHistorialPrecios(req.params.id);
+    res.status(200).json({ data: historialPrecios });
+  } catch (error) {
+    console.error("Error en getHistorialPrecios:", error);
+    res.status(500).json({ error: "Error al obtener el historial de precios" });
+  }
+};
+
+// Agregar imagen a un producto
+const agregarImagen = async (req, res) => {
+  try {
+    const { url, principal = false } = req.body;
+    if (!url) {
+      return res.status(400).json({ error: "La URL de la imagen es requerida" });
+    }
+
+    const producto = await productoService.agregarImagen(req.params.id, { url, principal });
+    if (!producto) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+    res.status(200).json({ data: producto });
+  } catch (error) {
+    console.error("Error en agregarImagen:", error);
+    res.status(500).json({ error: "Error al agregar la imagen", details: error.message });
+  }
+};
+
+// Eliminar imagen de un producto
+const eliminarImagen = async (req, res) => {
+  try {
+    const { imagenId } = req.params;
+    const producto = await productoService.eliminarImagen(req.params.id, imagenId);
+    if (!producto) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+    res.status(200).json({ data: producto });
+  } catch (error) {
+    console.error("Error en eliminarImagen:", error);
+    res.status(500).json({ error: "Error al eliminar la imagen", details: error.message });
+  }
+};
+
 module.exports = {
   getAll,
   create,
   getById,
   update,
   deleteById,
+  getHistorialPrecios,
+  agregarImagen,
+  eliminarImagen
 };

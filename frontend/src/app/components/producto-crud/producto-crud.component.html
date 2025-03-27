@@ -1,179 +1,221 @@
-<div class="container">
-  <div class="row">
-    <!-- Formulario -->
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-body">
-          <h3 class="card-title">{{ modoEdicion ? 'Editar Producto' : 'Nuevo Producto' }}</h3>
-
-          <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()">
-            <div class="mb-3">
-              <label class="form-label">Código de Barras</label>
-              <input type="text" class="form-control" formControlName="codigoBarras">
-              <div *ngIf="productoForm.get('codigoBarras')?.invalid && productoForm.get('codigoBarras')?.touched" class="text-danger">
-                Código de barras es requerido.
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Nombre</label>
-              <input type="text" class="form-control" formControlName="nombre">
-              <div *ngIf="productoForm.get('nombre')?.invalid && productoForm.get('nombre')?.touched" class="text-danger">
-                Nombre es requerido.
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Tamaño</label>
-              <select class="form-select" formControlName="tamano">
-                <option value="">Seleccione un tamaño</option>
-                <option value="Pequeño">Pequeño</option>
-                <option value="Mediano">Mediano</option>
-                <option value="Grande">Grande</option>
-              </select>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Marca</label>
-              <input type="text" class="form-control" formControlName="marca">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Precio por Pieza</label>
-              <input type="number" class="form-control" formControlName="precioPieza">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Precio por Caja</label>
-              <input type="number" class="form-control" formControlName="precioCaja">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Piezas por Caja</label>
-              <input type="number" class="form-control" formControlName="piezasPorCaja">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Stock en Almacén</label>
-              <input type="number" class="form-control" formControlName="stockAlmacen">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Stock en Exhibición</label>
-              <input type="number" class="form-control" formControlName="stockExhibe">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Existencia en Almacén</label>
-              <input type="number" class="form-control" formControlName="existenciaAlmacen">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Existencia en Exhibición</label>
-              <input type="number" class="form-control" formControlName="existenciaExhibe">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Proveedores</label>
-              <select class="form-select" formControlName="proveedores" multiple>
-                <option *ngFor="let proveedor of proveedores" [value]="proveedor._id">
-                  {{ proveedor.nombre }}
-                </option>
-              </select>
-              <div *ngIf="proveedores.length === 0" class="text-danger mt-1">
-                No hay proveedores disponibles.
-              </div>
-            </div>
-
-            <div class="mb-3 form-check">
-              <input type="checkbox" class="form-check-input" formControlName="activo" id="activo">
-              <label class="form-check-label" for="activo">Activo</label>
-            </div>
-
-            <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-primary" [disabled]="!productoForm.valid">
-                {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
-              </button>
-              <button type="button" class="btn btn-secondary" (click)="limpiarFormulario()">
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+<div class="boutique-container">
+  <div class="header-section">
+    <h2 class="main-title">Gestión de Inventario</h2>
+    <div class="user-actions">
+      <button class="logout-btn" (click)="authService.logout()">
+        <fa-icon [icon]="faSignOutAlt"></fa-icon> Cerrar sesión
+      </button>
     </div>
-
-    <!-- Lista de Productos -->
-    <div class="col-md-8">
-      <div class="card">
-        <div class="card-body">
-          <h3 class="card-title">Lista de Productos</h3>
-
-          <div *ngIf="loading" class="text-center">
-            <p>Cargando productos...</p>
+  </div>
+  
+  <div *ngIf="loading" class="status-message info">
+    <fa-icon [icon]="faSpinner" class="fa-spin"></fa-icon> Cargando datos... 
+    <span *ngIf="loadingMessage">({{ loadingMessage }})</span>
+  </div>
+  
+  <div *ngIf="error" class="status-message error">
+    <fa-icon [icon]="faExclamationCircle"></fa-icon> {{ errorMessage }}
+    <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
+  </div>
+  
+  <!-- Formulario para registrar/editar producto -->
+  <div class="product-form-card">
+    <div class="form-header">
+      {{ modoEdicion ? 'Editar Prenda' : 'Registrar Nueva Prenda' }}
+    </div>
+    <div class="form-body">
+      <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Código de Barras</label>
+            <input type="text" class="boutique-input" formControlName="codigoBarras" (input)="limitarLongitud($event, 10)">
+            <div *ngIf="productoForm.get('codigoBarras')?.invalid && productoForm.get('codigoBarras')?.touched" class="error-message">
+              <div *ngIf="productoForm.get('codigoBarras')?.errors?.['required']">Código de barras es requerido</div>
+              <div *ngIf="productoForm.get('codigoBarras')?.errors?.['maxlength']">Código de barras no puede tener más de 10 caracteres</div>
+            </div>
           </div>
-
-          <div *ngIf="error" class="alert alert-danger">
-            {{ errorMessage }}
-          </div>
-
-          <div class="table-responsive">
-            <table class="table table-striped" *ngIf="!loading && productos.length > 0">
-              <thead>
-                <tr>
-                  <th>Código</th>
-                  <th>Nombre</th>
-                  <th>Marca</th>
-                  <th>Tamaño</th>
-                  <th>Precio Pieza</th>
-                  <th>Precio Caja</th>
-                  <th>Piezas por Caja</th>
-                  <th>Stock Almacén</th>
-                  <th>Stock Exhibición</th>
-                  <th>Existencia Almacén</th>
-                  <th>Existencia Exhibición</th>
-                  <th>Proveedores</th>
-                  <th>Activo</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let producto of productos">
-                  <td>{{ producto.codigoBarras }}</td>
-                  <td>{{ producto.nombre }}</td>
-                  <td>{{ producto.marca }}</td>
-                  <td>{{ producto.tamano }}</td>
-                  <td>{{ producto.precioPieza | currency }}</td>
-                  <td>{{ producto.precioCaja | currency }}</td>
-                  <td>{{ producto.piezasPorCaja }}</td>
-                  <td>{{ producto.stockAlmacen }}</td>
-                  <td>{{ producto.stockExhibe }}</td>
-                  <td>{{ producto.existenciaAlmacen }}</td>
-                  <td>{{ producto.existenciaExhibe }}</td>
-                  <td>
-                    <span *ngFor="let proveedor of producto.proveedores">
-                      {{ proveedor.nombre ? proveedor.nombre : 'ID: ' + proveedor }}<br>
-                    </span>
-                  </td>
-                  <td>{{ producto.activo ? 'Sí' : 'No' }}</td>
-                  <td>
-                    <button class="btn btn-sm btn-info me-2" (click)="editarProducto(producto)">
-                      Editar
-                    </button>
-                    <button class="btn btn-sm btn-danger" (click)="eliminarProducto(producto._id!)">
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div *ngIf="!loading && productos.length === 0" class="text-center">
-            <p>No hay productos disponibles.</p>
+          <div class="form-group">
+            <label>Nombre de la Prenda</label>
+            <input type="text" class="boutique-input" formControlName="nombre">
+            <div *ngIf="productoForm.get('nombre')?.invalid && productoForm.get('nombre')?.touched" class="error-message">
+              Nombre es requerido
+            </div>
           </div>
         </div>
-      </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Marca</label>
+            <select class="boutique-select" formControlName="marca">
+              <option *ngFor="let marca of marcas" [value]="marca">{{ marca }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Categoría</label>
+            <select class="boutique-select" formControlName="categoria">
+              <option *ngFor="let categoria of categorias" [value]="categoria">{{ categoria }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Talla</label>
+            <select class="boutique-select" formControlName="tamano">
+              <option value="Pequeño">Pequeño</option>
+              <option value="Mediano">Mediano</option>
+              <option value="Grande">Grande</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Proveedores</label>
+            <select class="boutique-select" formControlName="proveedores" multiple>
+              <option *ngFor="let proveedor of proveedores" [value]="proveedor._id">
+                {{ proveedor.nombre }}
+              </option>
+            </select>
+            <div *ngIf="proveedores.length === 0" class="warning-message">
+              {{ loadingProveedores ? 'Cargando proveedores...' : 'No hay proveedores disponibles' }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Sección de imágenes -->
+        <div class="form-group">
+          <label>Imágenes del Producto</label>
+          <div class="imagenes-container">
+            <div class="agregar-imagen">
+              <input type="text" class="boutique-input" [(ngModel)]="nuevaImagenUrl" [ngModelOptions]="{standalone: true}" placeholder="URL de la imagen">
+              <button type="button" class="btn-small" (click)="agregarImagen()">Agregar Imagen</button>
+            </div>
+            
+            <div class="imagenes-list">
+              <div *ngFor="let imagen of imagenesEditando; let i = index" class="imagen-item">
+                <img [src]="imagen.url" alt="Imagen del producto" class="imagen-preview">
+                <div class="imagen-actions">
+                  <button type="button" class="btn-small btn-primary" 
+                    (click)="marcarComoPrincipal(i)"
+                    [class.active]="(imagen._id ? imagen._id === imagenPrincipalSeleccionada : imagen.url === imagenPrincipalSeleccionada)">
+                    {{ (imagen._id ? imagen._id === imagenPrincipalSeleccionada : imagen.url === imagenPrincipalSeleccionada) ? 'Principal' : 'Hacer Principal' }}
+                  </button>
+                  <button type="button" class="btn-small btn-danger" (click)="eliminarImagen(i)">Eliminar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Precio Unitario</label>
+            <input type="number" class="boutique-input" formControlName="precioPieza">
+            <div *ngIf="productoForm.get('precioPieza')?.invalid && productoForm.get('precioPieza')?.touched" class="error-message">
+              <div *ngIf="productoForm.get('precioPieza')?.errors?.['max']">El precio no puede ser mayor a 1,000,000</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Precio por Lote</label>
+            <input type="number" class="boutique-input" formControlName="precioCaja">
+          </div>
+          <div class="form-group">
+            <label>Unidades por Lote</label>
+            <input type="number" class="boutique-input" formControlName="piezasPorCaja">
+          </div>
+          <div class="form-group">
+            <label>Estado del Producto</label>
+            <div class="switch-container">
+              <label class="switch">
+                <input type="checkbox" formControlName="activo">
+                <span class="slider round"></span>
+              </label>
+              <span class="switch-label">{{ productoForm.get('activo')?.value ? 'Activo' : 'Inactivo' }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Stock en Bodega</label>
+            <input type="number" class="boutique-input" formControlName="stockAlmacen">
+            <div *ngIf="productoForm.get('stockAlmacen')?.invalid && productoForm.get('stockAlmacen')?.touched" class="error-message">
+              <div *ngIf="productoForm.get('stockAlmacen')?.errors?.['min']">El stock en bodega no puede ser menor que el stock en tienda</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Stock en Tienda</label>
+            <input type="number" class="boutique-input" formControlName="stockExhibe">
+          </div>
+          <div class="form-group">
+            <label>Existencia en Bodega</label>
+            <input type="number" class="boutique-input" formControlName="existenciaAlmacen">
+            <div *ngIf="productoForm.get('existenciaAlmacen')?.invalid && productoForm.get('existenciaAlmacen')?.touched" class="error-message">
+              <div *ngIf="productoForm.get('existenciaAlmacen')?.errors?.['min']">Las existencias en bodega no pueden ser menores que las existencias en tienda</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Existencia en Tienda</label>
+            <input type="number" class="boutique-input" formControlName="existenciaExhibe">
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="limpiarFormulario()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="productoForm.invalid">
+            {{ modoEdicion ? 'Actualizar' : 'Registrar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Lista de productos -->
+  <div *ngIf="!loading" class="inventory-section">
+    <h3 class="section-title">Catálogo de Productos ({{ productos.length }})</h3>
+    
+    <div *ngIf="productos.length === 0" class="empty-message">
+      No hay productos registrados en el catálogo.
+    </div>
+    
+    <div class="table-container">
+      <table *ngIf="productos.length > 0" class="boutique-table">
+        <thead>
+          <tr>
+            <th>Imagen</th>
+            <th>Código</th>
+            <th>Prenda</th>
+            <th>Marca</th>
+            <th>Categoría</th>
+            <th>Talla</th>
+            <th>Precio Unit.</th>
+            <th>Stock Bodega</th>
+            <th>Stock Tienda</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let producto of productos">
+            <td class="imagen-cell">
+              <img [src]="getImagenPrincipal(producto)" alt="{{producto.nombre}}" class="producto-imagen">
+            </td>
+            <td>{{ producto.codigoBarras }}</td>
+            <td>{{ producto.nombre }}</td>
+            <td>{{ producto.marca }}</td>
+            <td>{{ producto.categoria }}</td>
+            <td>{{ producto.tamano }}</td>
+            <td>{{ producto.precioPieza | currency }}</td>
+            <td>{{ producto.stockAlmacen }}</td>
+            <td>{{ producto.stockExhibe }}</td>
+            <td>
+              <span class="status-badge" [class.active]="producto.activo" [class.inactive]="!producto.activo">
+                {{ producto.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button class="btn-action edit" (click)="editarProducto(producto)">Editar</button>
+              <button class="btn-action history" (click)="verHistorialPrecios(producto._id!)">Historial</button>
+              <button class="btn-action delete" (click)="eliminarProducto(producto._id!)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

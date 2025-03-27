@@ -1,0 +1,52 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Tienda de Moda Online</h2>
+  
+  <!-- Filtros y búsqueda -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <input type="text" class="form-control" 
+             placeholder="Buscar prendas..." 
+             [(ngModel)]="filtroNombre"
+             (ngModelChange)="filtrarProductos()">
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" 
+              [(ngModel)]="filtroMarca"
+              (ngModelChange)="filtrarProductos()">
+        <option value="">Todas las marcas</option>
+        <option *ngFor="let marca of marcasUnicas">{{marca}}</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" 
+              [(ngModel)]="ordenSeleccionado"
+              (ngModelChange)="ordenarProductos()">
+        <option value="">Ordenar por</option>
+        <option value="precioAsc">Precio: menor a mayor</option>
+        <option value="precioDesc">Precio: mayor a menor</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Grid de productos -->
+  <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+    <div class="col" *ngFor="let producto of productosFiltrados">
+      <div class="card h-100 product-card">
+        <div class="card-body">
+          <h5 class="card-title">{{producto.nombre}}</h5>
+          <p class="card-text text-muted">{{producto.marca}}</p>
+          <p class="card-text fw-bold">{{ producto.precioPieza | currency }}</p>
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+          <small class="text-muted">Talla: {{producto.tamano}}</small>
+          <button class="btn btn-sm btn-outline-primary">Comprar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje si no hay productos -->
+  <div *ngIf="productosFiltrados.length === 0" class="alert alert-info mt-4">
+    No hay productos disponibles en este momento.
+  </div>
+</div>

@@ -1,1 +1,32 @@
-/* You can add global styles to this file, and also import other style files */
+/* Importación de estilos de toastr */
+@import 'ngx-toastr/toastr';
+
+/* Estilos generales */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+
+/* Personalización de toastr */
+.toast-container {
+  margin-top: 1rem;
+}
+
+.toast-success {
+  background-color: #28a745;
+}
+
+.toast-error {
+  background-color: #dc3545;
+}
+
+.toast-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.toast-info {
+  background-color: #17a2b8;
+}

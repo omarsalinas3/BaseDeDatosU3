@@ -15,42 +15,80 @@ const ProductoSchema = new mongoose.Schema({
   proveedores: [{ type: mongoose.Schema.Types.ObjectId, ref: "Proveedor" }],
   historialPrecios: [
     {
-      precioAnterior: { type: Number, required: true }, // Solo el precio anterior
+      precioAnterior: { type: Number, required: true },
       fechaInicio: { type: Date, required: true },
       fechaFin: { type: Date, required: true },
     },
   ],
   activo: { type: Boolean, default: true },
-});
+  imagenes: [{
+    url: { 
+      type: String, 
+      required: true,
+      match: [/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/, 'URL inválida']
+    },
+    orden: { type: Number, default: 0 },
+    principal: { type: Boolean, default: false }
+  }],
+  categoria: { type: String, enum: ["Camisas", "Pantalones", "Vestidos", "Zapatos", "Accesorios"], required: true }
+}, { timestamps: true });
 
-// Hook para actualizar el historial de precios antes de guardar
-ProductoSchema.pre("save", function (next) {
-  if (this.isModified("precioPieza") || this.isModified("precioCaja")) {
+// Método para capturar el precio anterior antes de guardar
+ProductoSchema.pre("save", async function(next) {
+  // Verificar si el precio ha cambiado
+  if ((this.isModified("precioPieza") || this.isModified("precioCaja")) && !this.isNew) {
     const ahora = new Date();
-
-    // Si ya existe un historial, actualiza la fechaFin del último registro
-    if (this.historialPrecios.length > 0) {
+    
+    // Si ya existe un historial, actualizar la fechaFin del último registro
+    if (this.historialPrecios && this.historialPrecios.length > 0) {
       const ultimoRegistro = this.historialPrecios[this.historialPrecios.length - 1];
       ultimoRegistro.fechaFin = ahora;
     }
-
-    // Obtener el valor anterior antes de la modificación
+    
+    // Obtener el precio actual antes de la modificación
     let precioAnterior;
+    
     if (this.isModified("precioPieza")) {
-      precioAnterior = this._original ? this._original.precioPieza : this.precioPieza;
+      // Usar el precio de pieza original si está disponible
+      if (this.isNew) {
+        precioAnterior = this.precioPieza;
+      } else {
+        const productoDB = await mongoose.model("Producto").findById(this._id);
+        precioAnterior = productoDB ? productoDB.precioPieza : this.precioPieza;
+      }
     } else if (this.isModified("precioCaja")) {
-      precioAnterior = this._original ? this._original.precioCaja : this.precioCaja;
+      if (this.isNew) {
+        precioAnterior = this.precioCaja / this.piezasPorCaja;
+      } else {
+        const productoDB = await mongoose.model("Producto").findById(this._id);
+        precioAnterior = productoDB ? productoDB.precioCaja / productoDB.piezasPorCaja : this.precioCaja / this.piezasPorCaja;
+      }
     }
-
-    // Agregar un nuevo registro al historial con el precio anterior
-    this.historialPrecios.push({
-      precioAnterior: precioAnterior, // Solo el precio anterior
-      fechaInicio: ahora,
-      fechaFin: ahora, // La fechaFin se actualizará en el próximo cambio
-    });
+    
+    if (precioAnterior !== undefined) {
+      this.historialPrecios.push({
+        precioAnterior: precioAnterior,
+        fechaInicio: ahora,
+        fechaFin: ahora
+      });
+    }
   }
-
+  
+  // Validar que solo haya una imagen principal
+  if (this.isModified('imagenes')) {
+    const principales = this.imagenes.filter(img => img.principal);
+    if (principales.length > 1) {
+      throw new Error('Solo puede haber una imagen principal');
+    }
+  }
+  
   next();
 });
+
+// Método para obtener la imagen principal
+ProductoSchema.methods.getImagenPrincipal = function() {
+  const principal = this.imagenes.find(img => img.principal);
+  return principal ? principal.url : (this.imagenes.length > 0 ? this.imagenes[0].url : 'https://via.placeholder.com/300x300.png?text=Sin+imagen');
+};
 
 module.exports = mongoose.model("Producto", ProductoSchema);
