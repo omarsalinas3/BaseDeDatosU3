@@ -1,3 +1,332 @@
+/* Variables de color y tipografía */
+:root {
+    --primary-color: #6a1b9a;       /* Morado principal */
+    --primary-light: #9c4dcc;       /* Morado claro */
+    --fashion-pink: #ff2d6b;        /* Rosa fashion */
+    --fashion-orange: #ff7b25;      /* Naranja vibrante */
+    --text-color: #333;
+    --text-light: #fff;
+    --font-main: 'Montserrat', 'Segoe UI', sans-serif;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+    --transition: all 0.3s ease;
+  }
+  
+ /* Fondo fashion */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--fashion-pink), var(--fashion-orange));
+    background-size: 400% 400%;
+    animation: gradientBG 12s ease infinite;
+    padding: 20px;
+    font-family: var(--font-main);
+  }
+  
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  .login-wrapper {
+    width: 100%;
+    max-width: 450px;
+  }
+  
+  .login-card {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    overflow: hidden;
+    padding: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .login-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .brand-icon {
+    background-color: var(--primary-light);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: white;
+    font-size: 24px;
+  }
+  
+  .login-header h1 {
+    margin: 0 0 10px 0;
+    color: var(--text-color);
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .login-header p {
+    margin: 0;
+    color: var(--dark-gray);
+    font-size: 16px;
+  }
+  
+  /* Formulario */
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+  }
+  
+  .label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .input-group {
+    position: relative;
+  }
+  
+  .input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dark-gray);
+    font-size: 16px;
+  }
+  
+  input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 1px solid var(--medium-gray);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: var(--transition);
+    background-color: var(--light-gray);
+  }
+  
+  input:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(106, 27, 154, 0.1);
+  }
+  
+  input.is-invalid {
+    border-color: var(--danger-color);
+  }
+  
+  .invalid-feedback {
+    color: var(--danger-color);
+    font-size: 13px;
+    margin-top: 5px;
+  }
+  
+  /* Remember me */
+  .remember-me {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+  }
+  
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    padding-left: 30px;
+    font-size: 14px;
+    color: var(--dark-gray);
+  }
+  
+  .checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  
+  .checkmark {
+    position: absolute;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: white;
+    border: 1px solid var(--medium-gray);
+    border-radius: 4px;
+    transition: var(--transition);
+  }
+  
+  .checkbox-container:hover input ~ .checkmark {
+    background-color: #f1f1f1;
+  }
+  
+  .checkbox-container input:checked ~ .checkmark {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+  
+  .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+  }
+  
+  .checkbox-container input:checked ~ .checkmark:after {
+    display: block;
+  }
+  
+  .checkbox-container .checkmark:after {
+    left: 7px;
+    top: 3px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  
+  /* Botón de login */
+  .login-button {
+    background: #000; /* Negro puro */
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .login-button:hover {
+    background: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .login-button:disabled {
+    background: #999;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* Icono del botón */
+  .login-button i {
+    font-size: 18px;
+  }
+  
+  /* Efecto de onda al hacer hover */
+  .login-button:hover:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 8px;
+    animation: ripple 1s linear infinite;
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  @keyframes ripple {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+  
+  /* Inputs con borde inferior */
+  input {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid var(--medium-gray) !important;
+    border-radius: 0 !important;
+    padding-left: 35px !important;
+  }
+  
+  input:focus {
+    border-bottom-color: var(--primary-color) !important;
+    box-shadow: none !important;
+  }
+  
+  /* Iconos de inputs */
+  .input-icon {
+    color: var(--primary-color) !important;
+  }
+  
+  /* Títulos más fashion */
+  .login-header h1 {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--primary-color);
+  }
+  
+  .login-header p {
+    font-weight: 500;
+    color: var(--dark-gray);
+  }
+  
+  /* Efecto de tarjeta flotante */
+  .login-card {
+    transform: translateY(0);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  }
+  
+  .login-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Responsive */
+  @media (max-width: 576px) {
+    .login-container {
+      padding: 15px;
+      background: linear-gradient(to right, var(--fashion-pink), var(--fashion-orange));
+      animation: none;
+    }
+    
+    .login-card {
+      padding: 30px 20px;
+      backdrop-filter: none;
+    }
+  }
+  
 /* Login Styles */
 .login-container {
     display: flex;

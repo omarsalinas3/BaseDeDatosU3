@@ -7,7 +7,7 @@ import { Producto } from '../../models/producto.model';
 import { ProductoService } from '../../services/producto.service';
 import { AuthService } from '../../services/auth.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSignOutAlt, faSpinner, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import { faSignOutAlt, faSpinner, faExclamationCircle, faCheckCircle, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 interface Proveedor {
   _id: string;
@@ -38,6 +38,16 @@ export class ProductoCrudComponent implements OnInit {
   faSignOutAlt = faSignOutAlt;
   faSpinner = faSpinner;
   faExclamationCircle = faExclamationCircle;
+  faCheckCircle = faCheckCircle;
+  faTimes = faTimes;
+  faTrash = faTrash;
+  
+  showSuccessMessage: boolean = false;
+  showErrorMessage: boolean = false;
+  showDeleteConfirm: boolean = false;
+  successMessage: string = '';
+  errorMessage: string = '';
+  deleteProductId: string = '';
 
   productos: Producto[] = [];
   proveedores: Proveedor[] = [];
@@ -48,7 +58,6 @@ export class ProductoCrudComponent implements OnInit {
   loadingMessage: string = '';
   loadingProveedores: boolean = true;
   error: boolean = false;
-  errorMessage: string = '';
   modoEdicion: boolean = false;
   productoIdEdicion: string | null = null;
   nuevaImagenUrl: string = '';
@@ -127,6 +136,32 @@ export class ProductoCrudComponent implements OnInit {
         this.errorMessage = 'Error al cargar productos: ' + (err.message || JSON.stringify(err));
         this.loading = false;
       }
+    });
+  }
+
+  private showAlert(type: 'success' | 'error', message: string, duration: number = 5000): void {
+    if (type === 'success') {
+      this.successMessage = message;
+      this.showSuccessMessage = true;
+      this.showErrorMessage = false;
+    } else {
+      this.errorMessage = message;
+      this.showErrorMessage = true;
+      this.showSuccessMessage = false;
+    }
+    
+    setTimeout(() => this.dismissAlert(), duration);
+  }
+
+  dismissAlert(): void {
+    const alerts = document.querySelectorAll('.custom-alert');
+    alerts.forEach(alert => {
+      alert.classList.add('hide');
+      setTimeout(() => {
+        this.showSuccessMessage = false;
+        this.showErrorMessage = false;
+        this.showDeleteConfirm = false;
+      }, 400);
     });
   }
 
@@ -228,13 +263,13 @@ export class ProductoCrudComponent implements OnInit {
 
   agregarImagen(): void {
     if (!this.nuevaImagenUrl) {
-      alert('Por favor ingresa una URL válida');
+      this.showAlert('error', 'Por favor ingresa una URL válida');
       return;
     }
 
     const urlPattern = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
     if (!urlPattern.test(this.nuevaImagenUrl)) {
-      alert('La URL de la imagen no es válida');
+      this.showAlert('error', 'La URL de la imagen no es válida');
       return;
     }
 
@@ -281,7 +316,7 @@ export class ProductoCrudComponent implements OnInit {
       orden: index,
       principal: (img._id ? img._id === this.imagenPrincipalSeleccionada : img.url === this.imagenPrincipalSeleccionada)
     }));
-
+  
     const productoData = {
       ...this.productoForm.value,
       imagenes: imagenesParaGuardar
@@ -299,11 +334,11 @@ export class ProductoCrudComponent implements OnInit {
             this.productos[index] = productoActualizado;
           }
           this.limpiarFormulario();
-          alert('Producto actualizado correctamente');
+          this.showAlert('success', '¡Prenda actualizada exitosamente!');
         },
         error: (err) => {
           console.error('Error al actualizar producto:', err);
-          alert('Error al actualizar el producto: ' + err.message);
+          this.showAlert('error', 'Error al actualizar la prenda: ' + (err.error?.message || err.message || 'Error desconocido'));
         }
       });
     } else {
@@ -311,34 +346,38 @@ export class ProductoCrudComponent implements OnInit {
         next: (nuevoProducto) => {
           this.productos.push(nuevoProducto);
           this.limpiarFormulario();
-          alert('Producto registrado correctamente');
+          this.showAlert('success', '¡Nueva prenda registrada exitosamente!');
         },
         error: (err) => {
           console.error('Error al crear producto:', err);
-          alert('Error al registrar el producto: ' + err.message);
+          this.showAlert('error', 'Error al registrar la prenda: ' + (err.error?.message || err.message || 'Error desconocido'));
         }
       });
     }
   }
 
+  confirmarEliminar(id: string): void {
+    this.deleteProductId = id;
+    this.showDeleteConfirm = true;
+  }
+  
   eliminarProducto(id: string): void {
     if (!id) {
-      alert('ID de producto no válido');
+      this.showAlert('error', 'ID de producto no válido');
       return;
     }
     
-    if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-      this.productoService.deleteProducto(id).subscribe({
-        next: () => {
-          this.productos = this.productos.filter(p => p._id !== id);
-          alert('Producto eliminado correctamente');
-        },
-        error: (err) => {
-          console.error('Error al eliminar producto:', err);
-          alert('Error al eliminar el producto: ' + err.message);
-        }
-      });
-    }
+    this.productoService.deleteProducto(id).subscribe({
+      next: () => {
+        this.productos = this.productos.filter(p => p._id !== id);
+        this.showAlert('success', 'Prenda eliminada exitosamente');
+        this.showDeleteConfirm = false;
+      },
+      error: (err) => {
+        console.error('Error al eliminar producto:', err);
+        this.showAlert('error', 'Error al eliminar la prenda: ' + (err.error?.message || err.message || 'Error desconocido'));
+      }
+    });
   }
 
   verHistorialPrecios(id: string): void {

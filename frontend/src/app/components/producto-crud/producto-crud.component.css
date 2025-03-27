@@ -356,7 +356,8 @@ input:checked + .slider:before {
   font-size: 14px;
 }
 
-.boutique-table th, .boutique-table td {
+.boutique-table th,
+.boutique-table td {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
@@ -430,7 +431,172 @@ input:checked + .slider:before {
   color: white;
 }
 
-/* Responsive */
+/* Alertas personalizadas */
+.custom-alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  width: 350px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+  transform: translateX(120%);
+  background-color: #fff;
+  border-left: 4px solid transparent;
+}
+
+.custom-alert.success {
+  border-left-color: #28a745;
+}
+
+.custom-alert.error {
+  border-left-color: #dc3545;
+}
+
+.custom-alert.warning {
+  border-left-color: #ffc107;
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  position: relative;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  margin-right: 12px;
+  font-size: 20px;
+}
+
+.custom-alert.success .alert-icon {
+  color: #28a745;
+}
+
+.custom-alert.error .alert-icon {
+  color: #dc3545;
+}
+
+.custom-alert.warning .alert-icon {
+  color: #ffc107;
+}
+
+.alert-message {
+  flex: 1;
+}
+
+.alert-message p {
+  margin: 0;
+  font-size: 14px;
+  color: #495057;
+  line-height: 1.4;
+}
+
+.alert-message h4 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #343a40;
+}
+
+.alert-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.alert-actions button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.alert-actions .btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.alert-actions .btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.alert-actions .btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.alert-actions .btn-danger:hover {
+  background-color: #c82333;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #343a40;
+}
+
+.progress-bar {
+  height: 3px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: #28a745;
+  animation: progress 5s linear forwards;
+}
+
+.custom-alert.error .progress-bar::after {
+  background-color: #dc3545;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(120%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); }
+  to { transform: translateX(120%); }
+}
+
+@keyframes progress {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.custom-alert.hide {
+  animation: slideOut 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+}
+
+/* Responsive styles */
 @media (max-width: 768px) {
   .header-section {
     flex-direction: column;
@@ -453,7 +619,8 @@ input:checked + .slider:before {
     overflow-x: auto;
   }
 
-  .boutique-table th, .boutique-table td {
+  .boutique-table th,
+  .boutique-table td {
     padding: 8px 10px;
   }
 
@@ -471,12 +638,19 @@ input:checked + .slider:before {
     display: block;
     width: 100%;
   }
-  .fa-spin {
-    animation: fa-spin 1s infinite linear;
+
+  .custom-alert {
+    width: calc(100% - 40px);
+    left: 20px;
+    right: 20px;
   }
-  
-  @keyframes fa-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+}
+
+.fa-spin {
+  animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

@@ -1,11 +1,40 @@
 <div class="boutique-container">
   <div class="header-section">
-    <h2 class="main-title">Gestión de Inventario</h2>
+    <h2 class="main-title">OD Style</h2>
     <div class="user-actions">
       <button class="logout-btn" (click)="authService.logout()">
         <fa-icon [icon]="faSignOutAlt"></fa-icon> Cerrar sesión
       </button>
     </div>
+  </div>
+  <div *ngIf="showSuccessMessage" class="custom-alert success">
+    <div class="alert-content">
+      <div class="alert-icon">
+        <fa-icon [icon]="faCheckCircle"></fa-icon>
+      </div>
+      <div class="alert-message">
+        <p>{{ successMessage }}</p>
+      </div>
+      <button class="close-btn" (click)="dismissAlert()">
+        <fa-icon [icon]="faTimes"></fa-icon>
+      </button>
+    </div>
+    <div class="progress-bar"></div>
+  </div>
+
+  <div *ngIf="showErrorMessage" class="custom-alert error">
+    <div class="alert-content">
+      <div class="alert-icon">
+        <fa-icon [icon]="faExclamationCircle"></fa-icon>
+      </div>
+      <div class="alert-message">
+        <p>{{ errorMessage }}</p>
+      </div>
+      <button class="close-btn" (click)="dismissAlert()">
+        <fa-icon [icon]="faTimes"></fa-icon>
+      </button>
+    </div>
+    <div class="progress-bar"></div>
   </div>
   
   <div *ngIf="loading" class="status-message info">
@@ -18,6 +47,21 @@
     <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
   </div>
   
+  <div *ngIf="showDeleteConfirm" class="custom-alert warning">
+    <div class="alert-content">
+      <div class="alert-icon">
+        <fa-icon [icon]="faTrash"></fa-icon>
+      </div>
+      <div class="alert-message">
+        <h4>Confirmar eliminación</h4>
+        <p>¿Estás seguro de que deseas eliminar esta prenda?</p>
+      </div>
+      <div class="alert-actions">
+        <button class="btn-secondary" (click)="dismissAlert()">Cancelar</button>
+        <button class="btn-danger" (click)="eliminarProducto(deleteProductId)">Eliminar</button>
+      </div>
+    </div>
+  </div>
   <!-- Formulario para registrar/editar producto -->
   <div class="product-form-card">
     <div class="form-header">
@@ -211,7 +255,7 @@
             <td class="actions-cell">
               <button class="btn-action edit" (click)="editarProducto(producto)">Editar</button>
               <button class="btn-action history" (click)="verHistorialPrecios(producto._id!)">Historial</button>
-              <button class="btn-action delete" (click)="eliminarProducto(producto._id!)">Eliminar</button>
+              <button class="btn-action delete" (click)="confirmarEliminar(producto._id!)">Eliminar</button>
             </td>
           </tr>
         </tbody>

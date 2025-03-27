@@ -1,9 +1,14 @@
 <div class="dashboard-container">
   <header class="dashboard-header">
     <div class="header-content">
-      <h1>Panel de Exhibidor</h1>
+      <div class="brand-section">
+        <h1>OD Style <span>Panel de Exhibidor</span></h1>
+      </div>
       <div class="user-info">
-        <span>Bienvenido, {{usuarioActual?.nombreUsuario}}</span>
+        <div class="user-greeting">
+          <i class="fas fa-user-circle"></i>
+          <span>Bienvenido, {{usuarioActual?.nombreUsuario}}</span>
+        </div>
         <button class="logout-btn" (click)="authService.logout()">
           <i class="fas fa-sign-out-alt"></i> Cerrar sesión
         </button>
@@ -11,20 +16,27 @@
     </div>
     
     <div class="search-bar">
-      <input type="text" [(ngModel)]="filtroBusqueda" placeholder="Buscar productos...">
       <i class="fas fa-search"></i>
+      <input type="text" [(ngModel)]="filtroBusqueda" placeholder="Buscar productos por nombre, marca o código...">
     </div>
   </header>
 
   <div *ngIf="loading" class="loading-overlay">
-    <div class="spinner"></div>
-    <p>Cargando productos...</p>
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <p>Cargando productos...</p>
+    </div>
   </div>
 
   <div *ngIf="error" class="error-message">
     <div class="error-content">
-      <i class="fas fa-exclamation-circle"></i>
-      <span>{{ error }}</span>
+      <div class="error-icon">
+        <i class="fas fa-exclamation-circle"></i>
+      </div>
+      <div class="error-text">
+        <h3>Error al cargar</h3>
+        <span>{{ error }}</span>
+      </div>
       <button class="retry-btn" (click)="cargarProductos()">
         <i class="fas fa-sync-alt"></i> Reintentar
       </button>
@@ -33,24 +45,32 @@
 
   <div *ngIf="!loading && !error" class="productos-container">
     <div *ngIf="productosFiltrados.length === 0" class="no-results">
-      <i class="fas fa-box-open"></i>
-      <p>No se encontraron productos</p>
+      <div class="no-results-content">
+        <i class="fas fa-box-open"></i>
+        <h3>No se encontraron productos</h3>
+        <p>Intenta ajustar tus criterios de búsqueda</p>
+      </div>
     </div>
 
     <div class="productos-grid">
       <div *ngFor="let producto of productosFiltrados" class="producto-card" (click)="seleccionarProducto(producto)">
         <div class="producto-imagen-container">
+          <div class="producto-imagen-overlay"></div>
           <img [src]="getImagenPrincipal(producto)" [alt]="producto.nombre" class="producto-imagen">
           <div *ngIf="producto.stockExhibe <= 0" class="stock-badge agotado">AGOTADO</div>
           <div *ngIf="producto.stockExhibe> 0 && producto.stockExhibe <= 5" class="stock-badge bajo">ÚLTIMAS UNIDADES</div>
         </div>
         <div class="producto-info">
-          <h3>{{ producto.nombre || 'Sin nombre' }}</h3>
-          <p class="marca">{{ producto.marca || 'Sin marca' }}</p>
-          <p class="precio">{{ producto.precioPieza | currency:'USD':'symbol':'1.2-2' }}</p>
-          <p class="stock" [class.bajo-stock]="producto.stockExhibe <= 5">
-            Existencias: {{ producto.stockExhibe || 0 }} unidades
-          </p>
+          <div class="producto-header">
+            <h3>{{ producto.nombre || 'Sin nombre' }}</h3>
+            <p class="marca">{{ producto.marca || 'Sin marca' }}</p>
+          </div>
+          <div class="producto-footer">
+            <p class="precio">{{ producto.precioPieza | currency:'USD':'symbol':'1.2-2' }}</p>
+            <p class="stock" [class.bajo-stock]="producto.stockExhibe <= 5">
+              <i class="fas fa-box"></i> {{ producto.stockExhibe || 0 }} unidades
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -59,32 +79,69 @@
   <app-modal *ngIf="mostrarModal && productoSeleccionado" (cerrar)="cerrarModal()">
     <div class="modal-producto">
       <div class="modal-imagen-container">
-        <img [src]="getImagenPrincipal(productoSeleccionado)" [alt]="productoSeleccionado.nombre" class="modal-imagen">
+        <div class="modal-imagen-wrapper">
+          <img [src]="getImagenPrincipal(productoSeleccionado)" [alt]="productoSeleccionado.nombre" class="modal-imagen">
+        </div>
       </div>
       <div class="modal-info">
-        <h2>{{ productoSeleccionado.nombre }}</h2>
-        <p class="marca">{{ productoSeleccionado.marca }}</p>
+        <div class="modal-header">
+          <h2>{{ productoSeleccionado.nombre }}</h2>
+          <p class="marca">{{ productoSeleccionado.marca }}</p>
+        </div>
         
         <div class="detalles">
-          <p><strong>Precio:</strong> {{ productoSeleccionado.precioPieza | currency:'USD':'symbol':'1.2-2' }}</p>
-          <p><strong>Talla:</strong> {{ productoSeleccionado.tamano }}</p>
-          <p><strong>Código:</strong> {{ productoSeleccionado.codigoBarras }}</p>
-          <p><strong>Stock disponible:</strong> {{ productoSeleccionado.stockExhibe }}</p>
+          <div class="detalle-item">
+            <i class="fas fa-tag"></i>
+            <div>
+              <span class="detalle-label">Precio:</span>
+              <span class="detalle-valor">{{ productoSeleccionado.precioPieza | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+          <div class="detalle-item">
+            <i class="fas fa-ruler"></i>
+            <div>
+              <span class="detalle-label">Talla:</span>
+              <span class="detalle-valor">{{ productoSeleccionado.tamano }}</span>
+            </div>
+          </div>
+          <div class="detalle-item">
+            <i class="fas fa-barcode"></i>
+            <div>
+              <span class="detalle-label">Código:</span>
+              <span class="detalle-valor">{{ productoSeleccionado.codigoBarras }}</span>
+            </div>
+          </div>
+          <div class="detalle-item">
+            <i class="fas fa-boxes"></i>
+            <div>
+              <span class="detalle-label">Stock disponible:</span>
+              <span class="detalle-valor">{{ productoSeleccionado.stockExhibe }}</span>
+            </div>
+          </div>
         </div>
 
         <div class="agregar-stock">
-          <h3>Agregar al stock de exhibición</h3>
+          <h3><i class="fas fa-plus-circle"></i> Agregar al stock de exhibición</h3>
           <div class="stock-control">
-            <input type="number" [(ngModel)]="cantidadAAgregar" min="1" placeholder="Cantidad">
-            <button (click)="agregarStock()">Agregar</button>
+            <div class="input-wrapper">
+              <i class="fas fa-box-open"></i>
+              <input type="number" [(ngModel)]="cantidadAAgregar" min="1" placeholder="Cantidad">
+            </div>
+            <button class="confirm-btn" (click)="agregarStock()">
+              <i class="fas fa-check"></i> Confirmar
+            </button>
+          </div>
+          <div *ngIf="mensajeStock" class="stock-message" [class.success]="mensajeExito" [class.error]="!mensajeExito">
+            <i class="fas" [class.fa-check-circle]="mensajeExito" [class.fa-exclamation-circle]="!mensajeExito"></i>
+            {{ mensajeStock }}
           </div>
         </div>
 
         <div *ngIf="productoSeleccionado.proveedores && productoSeleccionado.proveedores.length > 0" class="proveedores">
-          <h3>Proveedores:</h3>
+          <h3><i class="fas fa-truck"></i> Proveedores:</h3>
           <ul>
             <li *ngFor="let prov of productoSeleccionado.proveedores">
-              {{ getNombreProveedor(prov) }}
+              <i class="fas fa-chevron-right"></i> {{ getNombreProveedor(prov) }}
             </li>
           </ul>
         </div>

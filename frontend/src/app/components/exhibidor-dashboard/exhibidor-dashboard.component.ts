@@ -23,6 +23,8 @@ export class ExhibidorDashboardComponent implements OnInit {
   usuarioActual: any;
   filtroBusqueda: string = '';
   cantidadAAgregar: number = 0;
+  mensajeStock: string = '';
+  mensajeExito: boolean = false;
 
   constructor(
     private productoService: ProductoService,
@@ -46,7 +48,6 @@ export class ExhibidorDashboardComponent implements OnInit {
     
     this.productoService.getProductosParaClientes().subscribe({
       next: (response) => {
-        // Filtrar solo productos activos
         this.productos = (response || []).filter(producto => producto.activo !== false);
         this.loading = false;
       },
@@ -61,6 +62,7 @@ export class ExhibidorDashboardComponent implements OnInit {
   seleccionarProducto(producto: Producto): void {
     this.productoSeleccionado = {...producto};
     this.cantidadAAgregar = 0;
+    this.mensajeStock = '';
     this.mostrarModal = true;
   }
 
@@ -68,10 +70,14 @@ export class ExhibidorDashboardComponent implements OnInit {
     this.mostrarModal = false;
     this.productoSeleccionado = null;
     this.cantidadAAgregar = 0;
+    this.mensajeStock = '';
   }
+
   agregarStock(): void {
     if (!this.productoSeleccionado || !this.productoSeleccionado._id || this.cantidadAAgregar <= 0) {
-      alert('Ingrese una cantidad válida');
+      this.mensajeExito = false;
+      this.mensajeStock = 'Ingrese una cantidad válida';
+      setTimeout(() => this.mensajeStock = '', 3000);
       return;
     }
   
@@ -85,15 +91,22 @@ export class ExhibidorDashboardComponent implements OnInit {
         if (index !== -1) {
           this.productos[index] = productoActualizado;
         }
-        this.cerrarModal();
-        alert('Stock actualizado correctamente');
+        this.mensajeExito = true;
+        this.mensajeStock = 'Stock actualizado correctamente';
+        setTimeout(() => {
+          this.mensajeStock = '';
+          this.cerrarModal();
+        }, 2000);
       },
       error: (err) => {
         console.error('Error al actualizar stock:', err);
-        alert('Error al actualizar el stock: ' + (err.error?.message || err.message || 'Error desconocido'));
+        this.mensajeExito = false;
+        this.mensajeStock = 'Error al actualizar el stock: ' + (err.error?.message || err.message || 'Error desconocido');
+        setTimeout(() => this.mensajeStock = '', 4000);
       }
     });
   }
+
   getImagenPrincipal(producto: Producto): string {
     if (producto.imagenes && producto.imagenes.length > 0) {
       const principal = producto.imagenes.find(img => img.principal);
