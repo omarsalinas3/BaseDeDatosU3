@@ -1,0 +1,205 @@
+:host {
+    display: block;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+  }
+  
+  .auth-container {
+    background-color: #f8f9fa;
+    padding: 2rem 0;
+    background-image: url('https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: overlay;
+    background-color: rgba(248, 249, 250, 0.9);
+  }
+  
+  .auth-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    border: none;
+  }
+  
+  .auth-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .auth-header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #3a3a3a 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+  }
+  
+  .auth-header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: white;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+  
+  .brand-icon {
+    color: #fff;
+  }
+  
+  .brand-title {
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 1px;
+  }
+  
+  .welcome-text {
+    opacity: 0.9;
+    font-weight: 300;
+    margin-bottom: 0;
+  }
+  
+  .modern-input {
+    border-radius: 8px;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s;
+  }
+  
+  .modern-input:focus {
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 2px rgba(26, 26, 26, 0.2);
+  }
+  
+  .input-group-text {
+    border-radius: 8px 0 0 8px !important;
+    border-right: none !important;
+    color: #6c757d !important;
+  }
+  
+  .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+  
+  .auth-button {
+    background: linear-gradient(135deg, #1a1a1a 0%, #3a3a3a 100%);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+  }
+  
+  .auth-button:hover {
+    background: linear-gradient(135deg, #3a3a3a 0%, #1a1a1a 100%);
+    transform: translateY(-2px);
+  }
+  
+  .auth-button:disabled {
+    background: #cccccc;
+    transform: none;
+  }
+  
+  .highlight-link {
+    color: #1a1a1a;
+    font-weight: 600;
+    text-decoration: none;
+    position: relative;
+  }
+  
+  .highlight-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #1a1a1a;
+    transition: width 0.3s;
+  }
+  
+  .highlight-link:hover::after {
+    width: 100%;
+  }
+  
+  .highlight-link:hover {
+    color: #1a1a1a;
+  }
+  
+  .error-card {
+    background-color: #fff3f3;
+    border-left: 4px solid #ff4d4d;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ff4d4d;
+    font-weight: 500;
+  }
+  
+  .error-icon {
+    background-color: #ff4d4d;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  
+  .invalid-feedback {
+    color: #ff4d4d;
+    font-size: 0.85rem;
+  }
+  
+  /* Efectos especiales para el select */
+  .modern-input.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+  }
+  
+  /* Checkbox personalizado */
+  .form-check-input {
+    width: 1.1em;
+    height: 1.1em;
+    margin-top: 0.15em;
+    border: 1px solid #adb5bd;
+  }
+  
+  .form-check-input:checked {
+    background-color: #1a1a1a;
+    border-color: #1a1a1a;
+  }
+  
+  .form-check-label {
+    color: #495057;
+    cursor: pointer;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .auth-header {
+      padding: 1.5rem;
+    }
+    
+    .brand-title {
+      font-size: 1.5rem;
+    }
+  }

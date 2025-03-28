@@ -1,52 +1,153 @@
-<div class="container mt-4">
-  <h2 class="mb-4">Tienda de Moda Online</h2>
-  
-  <!-- Filtros y búsqueda -->
-  <div class="row mb-4">
-    <div class="col-md-6">
-      <input type="text" class="form-control" 
-             placeholder="Buscar prendas..." 
-             [(ngModel)]="filtroNombre"
-             (ngModelChange)="filtrarProductos()">
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="brand-section">
+        <h1>OD Style <span>Tienda de Moda Online</span></h1>
+      </div>
+      <div class="user-info">
+        <div class="user-greeting">
+          <i class="fas fa-user-circle"></i>
+          <span>Bienvenido, {{usuarioActual?.nombreUsuario}}</span>
+        </div>
+        <button class="logout-btn" (click)="authService.logout()">
+          <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+        </button>
+      </div>
     </div>
-    <div class="col-md-3">
-      <select class="form-select" 
-              [(ngModel)]="filtroMarca"
-              (ngModelChange)="filtrarProductos()">
-        <option value="">Todas las marcas</option>
-        <option *ngFor="let marca of marcasUnicas">{{marca}}</option>
-      </select>
+    
+    <div class="search-bar">
+      <i class="fas fa-search"></i>
+      <input type="text" [(ngModel)]="filtroBusqueda" placeholder="Buscar productos por nombre, marca o código...">
     </div>
-    <div class="col-md-3">
-      <select class="form-select" 
-              [(ngModel)]="ordenSeleccionado"
-              (ngModelChange)="ordenarProductos()">
-        <option value="">Ordenar por</option>
-        <option value="precioAsc">Precio: menor a mayor</option>
-        <option value="precioDesc">Precio: mayor a menor</option>
-      </select>
+
+    <div class="filtros-container">
+      <div class="filtro-item">
+        <label for="filtroMarca"><i class="fas fa-tag"></i> Marca:</label>
+        <select id="filtroMarca" [(ngModel)]="filtroMarca">
+          <option value="">Todas las marcas</option>
+          <option *ngFor="let marca of marcasUnicas" [value]="marca">{{marca}}</option>
+        </select>
+      </div>
+      
+      <div class="filtro-item">
+        <label for="ordenSeleccionado"><i class="fas fa-sort"></i> Ordenar por:</label>
+        <select id="ordenSeleccionado" [(ngModel)]="ordenSeleccionado">
+          <option value="">Predeterminado</option>
+          <option value="precioAsc">Precio: menor a mayor</option>
+          <option value="precioDesc">Precio: mayor a menor</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <p>Cargando productos...</p>
     </div>
   </div>
 
-  <!-- Grid de productos -->
-  <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
-    <div class="col" *ngFor="let producto of productosFiltrados">
-      <div class="card h-100 product-card">
-        <div class="card-body">
-          <h5 class="card-title">{{producto.nombre}}</h5>
-          <p class="card-text text-muted">{{producto.marca}}</p>
-          <p class="card-text fw-bold">{{ producto.precioPieza | currency }}</p>
+  <div *ngIf="error" class="error-message">
+    <div class="error-content">
+      <div class="error-icon">
+        <i class="fas fa-exclamation-circle"></i>
+      </div>
+      <div class="error-text">
+        <h3>Error al cargar</h3>
+        <span>{{ error }}</span>
+      </div>
+      <button class="retry-btn" (click)="cargarProductos()">
+        <i class="fas fa-sync-alt"></i> Reintentar
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !error" class="productos-container">
+    <div *ngIf="productosFiltrados.length === 0" class="no-results">
+      <div class="no-results-content">
+        <i class="fas fa-box-open"></i>
+        <h3>No se encontraron productos</h3>
+        <p>Intenta ajustar tus criterios de búsqueda</p>
+      </div>
+    </div>
+
+    <div class="productos-grid">
+      <div *ngFor="let producto of productosFiltrados" class="producto-card" (click)="seleccionarProducto(producto)">
+        <div class="producto-imagen-container">
+          <div class="producto-imagen-overlay"></div>
+          <img [src]="getImagenPrincipal(producto)" [alt]="producto.nombre" class="producto-imagen">
+          <div *ngIf="producto.stockExhibe <= 0" class="stock-badge agotado">AGOTADO</div>
+          <div *ngIf="producto.stockExhibe> 0 && producto.stockExhibe <= 5" class="stock-badge bajo">ÚLTIMAS UNIDADES</div>
         </div>
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
-          <small class="text-muted">Talla: {{producto.tamano}}</small>
-          <button class="btn btn-sm btn-outline-primary">Comprar</button>
+        <div class="producto-info">
+          <div class="producto-header">
+            <h3>{{ producto.nombre || 'Sin nombre' }}</h3>
+            <p class="marca">{{ producto.marca || 'Sin marca' }}</p>
+          </div>
+          <div class="producto-footer">
+            <p class="precio">{{ producto.precioPieza | currency:'USD':'symbol':'1.2-2' }}</p>
+            <p class="stock" [class.bajo-stock]="producto.stockExhibe <= 5">
+              <i class="fas fa-box"></i> {{ producto.stockExhibe || 0 }} unidades
+            </p>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Mensaje si no hay productos -->
-  <div *ngIf="productosFiltrados.length === 0" class="alert alert-info mt-4">
-    No hay productos disponibles en este momento.
-  </div>
+  <app-modal *ngIf="mostrarModal && productoSeleccionado" (cerrar)="cerrarModal()">
+    <div class="modal-producto">
+      <div class="modal-imagen-container">
+        <div class="modal-imagen-wrapper">
+          <img [src]="getImagenPrincipal(productoSeleccionado)" [alt]="productoSeleccionado.nombre" class="modal-imagen">
+        </div>
+      </div>
+      <div class="modal-info">
+        <div class="modal-header">
+          <h2>{{ productoSeleccionado.nombre }}</h2>
+          <p class="marca">{{ productoSeleccionado.marca }}</p>
+        </div>
+        
+        <div class="detalles">
+          <div class="detalle-item">
+            <i class="fas fa-tag"></i>
+            <div>
+              <span class="detalle-label">Precio:</span>
+              <span class="detalle-valor">{{ productoSeleccionado.precioPieza | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+          <div class="detalle-item">
+            <i class="fas fa-ruler"></i>
+            <div>
+              <span class="detalle-label">Talla:</span>
+              <span class="detalle-valor">{{ productoSeleccionado.tamano }}</span>
+            </div>
+          </div>
+          <div class="detalle-item">
+            <i class="fas fa-barcode"></i>
+            <div>
+              <span class="detalle-label">Código:</span>
+              <span class="detalle-valor">{{ productoSeleccionado.codigoBarras }}</span>
+            </div>
+          </div>
+          <div class="detalle-item">
+            <i class="fas fa-boxes"></i>
+            <div>
+              <span class="detalle-label">Stock disponible:</span>
+              <span class="detalle-valor">{{ productoSeleccionado.stockExhibe }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="productoSeleccionado.proveedores && productoSeleccionado.proveedores.length > 0" class="proveedores">
+          <h3><i class="fas fa-truck"></i> Proveedores:</h3>
+          <ul>
+            <li *ngFor="let prov of productoSeleccionado.proveedores">
+              <i class="fas fa-chevron-right"></i> {{ getNombreProveedor(prov) }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </app-modal>
 </div>
